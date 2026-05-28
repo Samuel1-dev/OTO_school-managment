@@ -1,0 +1,139 @@
+<div class="portal-root">
+
+  <!-- Background glows -->
+  <div class="glow-sky" style="width:500px;height:500px;top:-10%;right:-10%;"></div>
+  <div class="glow-indigo" style="width:400px;height:400px;bottom:-10%;left:-10%;"></div>
+
+  <!-- HEADER -->
+  <header class="portal-header">
+    <div class="header-inner">
+      <div class="logo" (click)="goBack()">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OTO <span class="sky">School</span></span>
+      </div>
+      <button class="btn-outline" (click)="goBack()">
+        <span class="material-icons" style="font-size:16px">arrow_back</span>
+        Retour
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="portal-main">
+
+    <!-- Title -->
+    <div class="portal-title">
+      <div class="badge-sky">
+        <span class="dot"></span>
+        Portail OTO School
+      </div>
+      <h1>Bienvenue sur le <span class="sky">Portail</span></h1>
+      <p>Choisissez votre espace pour continuer</p>
+    </div>
+
+    <!-- Containers -->
+    <div class="portal-grid">
+
+      <!-- Espace Académie -->
+      <div class="portal-card sky-card">
+        <div class="card-bg-icon">
+          <span class="material-icons">school</span>
+        </div>
+        <div class="card-content">
+          <div class="icon-box sky large">
+            <span class="material-icons">school</span>
+          </div>
+          <h2>Espace Académie</h2>
+          <p>
+            Accédez à votre espace de gestion scolaire. Connectez-vous
+            avec votre compte selon votre rôle dans l'établissement.
+          </p>
+          <ul class="card-features">
+            <li>
+              <span class="material-icons">admin_panel_settings</span>
+              Administration
+            </li>
+            <li>
+              <span class="material-icons">school</span>
+              Professeurs
+            </li>
+            <li>
+              <span class="material-icons">badge</span>
+              Secrétariat
+            </li>
+            <li>
+              <span class="material-icons">supervisor_account</span>
+              Superviseurs
+            </li>
+          </ul>
+        </div>
+        <button class="btn-primary full-width" (click)="goToLogin()">
+          <span class="material-icons" style="font-size:18px">login</span>
+          Accéder à mon académie
+        </button>
+      </div>
+
+      <!-- Espace Parent -->
+      <div class="portal-card indigo-card">
+        <div class="card-bg-icon indigo">
+          <span class="material-icons">family_restroom</span>
+        </div>
+        <div class="card-content">
+          <div class="icon-box indigo large">
+            <span class="material-icons">family_restroom</span>
+          </div>
+          <h2>Espace Parent</h2>
+          <p>
+            Suivez la scolarité de vos enfants en temps réel. Notes,
+            absences, paiements et communications avec l'école.
+          </p>
+          <ul class="card-features">
+            <li>
+              <span class="material-icons">trending_up</span>
+              Suivi des notes
+            </li>
+            <li>
+              <span class="material-icons">event_busy</span>
+              Contrôle des absences
+            </li>
+            <li>
+              <span class="material-icons">payments</span>
+              Suivi financier
+            </li>
+            <li>
+              <span class="material-icons">campaign</span>
+              Annonces de l'école
+            </li>
+          </ul>
+        </div>
+        <button class="btn-indigo full-width" (click)="goToParentLogin()">
+          <span class="material-icons" style="font-size:18px">visibility</span>
+          Suivre mon enfant
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Inscription -->
+    <div class="inscription-section">
+      <p>Pas encore inscrit ?</p>
+      <div class="inscription-buttons">
+        <button class="btn-secondary" (click)="goToInscription()">
+          <span class="material-icons" style="font-size:16px">add_business</span>
+          Inscrire une école
+        </button>
+        <button class="btn-secondary" (click)="goToInscriptionParent()">
+          <span class="material-icons" style="font-size:16px">person_add</span>
+          Inscrire un parent
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="portal-footer">
+    <p>© 2026 OTO SCHOOL MANAGEMENT. Tous droits réservés.</p>
+  </footer>
+
+</div>

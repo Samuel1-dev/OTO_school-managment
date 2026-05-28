@@ -1,0 +1,382 @@
+<div class="landing-root">
+
+  <!-- Background glows -->
+  <div class="glow-sky" style="width:500px;height:500px;top:-10%;right:-10%;"></div>
+  <div class="glow-indigo" style="width:400px;height:400px;bottom:-10%;left:-10%;"></div>
+
+  <!-- HEADER -->
+  <header class="landing-header" [class.scrolled]="isScrolled">
+    <div class="header-inner">
+
+      <!-- Logo -->
+      <div class="logo" (click)="scrollToSection('accueil')">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OTO <span class="sky">School</span></span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="nav-tabs">
+        <button
+          *ngFor="let tab of navTabs"
+          (click)="scrollToSection(tab.id)"
+          [class.active]="activeTab === tab.id"
+          class="nav-tab">
+          {{ tab.label }}
+        </button>
+      </nav>
+
+      <!-- CTA -->
+      <button class="btn-outline" (click)="goToPortal()">
+        <span class="material-icons" style="font-size:16px">laptop</span>
+        Portail Web
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="accueil" class="hero-section">
+    <div class="bg-grid" style="position:absolute;inset:0;"></div>
+    <div class="glow-sky" style="width:384px;height:384px;top:-160px;right:40px;"></div>
+    <div class="glow-indigo" style="width:384px;height:384px;bottom:-160px;left:40px;"></div>
+
+    <div class="hero-content">
+      <div class="badge-sky">
+        <span class="dot"></span>
+        Plateforme de gestion scolaire tout-en-un
+      </div>
+
+      <div class="hero-title">
+        <h1>NUMÉRISEZ<br/>VOTRE <span class="gradient-text">ÉCOLE</span></h1>
+        <p class="hero-subtitle">
+          Simplifiez la gestion administrative, pédagogique et parentale
+          avec la solution OTO SCHOOL MANAGEMENT.
+        </p>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn-primary" (click)="goToPortal()">
+          <span>Accéder à l'application web</span>
+          <span class="material-icons" style="font-size:18px">laptop</span>
+        </button>
+        <button class="btn-secondary" (click)="scrollToSection('solution')">
+          Découvrir nos solutions
+        </button>
+      </div>
+
+      <!-- App mockup -->
+      <div class="app-mockup">
+        <div class="mockup-window">
+          <div class="mockup-bar">
+            <div class="mockup-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="mockup-url">https://oto-school-management.ci</div>
+            <div style="width:24px"></div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-sidebar">
+              <div class="mock-block sky"></div>
+              <div class="mock-block"></div>
+              <div class="mock-block"></div>
+              <div class="mock-spacer"></div>
+              <div class="mock-block"></div>
+              <div class="mock-block"></div>
+            </div>
+            <div class="mockup-main">
+              <div class="mockup-header-row">
+                <div class="mock-block" style="width:33%"></div>
+                <div class="mock-live">LIVE</div>
+              </div>
+              <div class="mockup-stats">
+                <div class="mock-stat">
+                  <p class="label">Élèves</p>
+                  <p class="value">1,240</p>
+                </div>
+                <div class="mock-stat">
+                  <p class="label">Professeurs</p>
+                  <p class="value">74</p>
+                </div>
+                <div class="mock-stat">
+                  <p class="label">Classes</p>
+                  <p class="value">32</p>
+                </div>
+              </div>
+              <div class="mockup-row">
+                <div class="mock-avatar"></div>
+                <div class="mock-lines">
+                  <div class="mock-block"></div>
+                  <div class="mock-block" style="width:70%"></div>
+                </div>
+                <div class="mock-btn"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- A PROPOS -->
+  <section id="apropos" class="section">
+    <div class="section-header">
+      <p class="section-tag">QUI SOMMES-NOUS ?</p>
+      <h2 class="section-title">À Propos d'OTO School</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="apropos-grid">
+      <div class="apropos-left">
+        <div class="card">
+          <div class="card-icon-row">
+            <div class="icon-box sky">
+              <span class="material-icons">emoji_events</span>
+            </div>
+            <h3>Notre Objectif</h3>
+          </div>
+          <p class="text-secondary">
+            L'éducation numérique ne doit plus être une option réservée à quelques-uns.
+            <strong>OTO SCHOOL MANAGEMENT</strong> est né de la volonté forte de démocratiser
+            l'efficacité de gestion dans et hors des salles de classe africaines.
+          </p>
+          <p class="text-muted mt-8">
+            De la gestion comptable fine au suivi personnalisé d'un enfant par ses parents,
+            notre socle applicatif élimine les barrières de communication.
+          </p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <p class="stat-value sky">100%</p>
+            <p class="stat-label">Suivi en Temps Réel</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-value sky">Zéro</p>
+            <p class="stat-label">Perte de Documents</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="apropos-right">
+        <h3 class="apropos-title">Une Révolution Organisationnelle</h3>
+        <p class="text-secondary">
+          Notre plateforme intègre les meilleures pratiques des outils digitaux modernes
+          au service des directeurs, secrétaires, enseignants et parents d'élèves.
+        </p>
+        <div class="features-list">
+          <div class="feature-item" *ngFor="let item of [
+            {title: 'Accessibilité Sans Limite', desc: 'Disponible 24h/24 sur ordinateurs, tablettes et smartphones.'},
+            {title: 'Transparence & Sécurité', desc: 'Toutes les modifications sont historisées et sécurisées.'},
+            {title: 'Culture Communautaire', desc: 'Forums, messageries et bibliothèques d\'épreuves partagées.'}
+          ]">
+            <div class="feature-icon">
+              <span class="material-icons">check_circle</span>
+            </div>
+            <div>
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.desc }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLUTIONS -->
+  <section id="solution" class="section border-top">
+    <div class="section-header">
+      <p class="section-tag">SUPPORTS APPLICATIFS</p>
+      <h2 class="section-title">Nos Deux Solutions Phares</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="solutions-grid">
+      <!-- Web -->
+      <div class="solution-card sky-card">
+        <div class="solution-bg-icon sky">
+          <span class="material-icons">laptop</span>
+        </div>
+        <div class="solution-content">
+          <div class="icon-box sky">
+            <span class="material-icons">laptop</span>
+          </div>
+          <span class="solution-tag sky">SOCIÉTÉ APPLICATIVE DÉDIÉE</span>
+          <h3>Plateforme Web OTO School</h3>
+          <p>Le cœur battant de votre école. Un espace centralisé complet accessible via n'importe quel navigateur web.</p>
+          <ul class="solution-features">
+            <li><span class="dot sky"></span> 4 rôles administratifs paramétrables</li>
+            <li><span class="dot sky"></span> Vérification d'inscription étape par étape</li>
+            <li><span class="dot sky"></span> Portail d'académie & Suivi des finances</li>
+          </ul>
+        </div>
+        <button class="btn-primary full-width" (click)="goToPortal()">
+          <span>Accéder à l'application Web</span>
+          <span class="material-icons" style="font-size:16px">laptop</span>
+        </button>
+      </div>
+
+      <!-- Mobile -->
+      <div class="solution-card indigo-card">
+        <div class="solution-bg-icon indigo">
+          <span class="material-icons">smartphone</span>
+        </div>
+        <div class="solution-content">
+          <div class="icon-box indigo">
+            <span class="material-icons">smartphone</span>
+          </div>
+          <span class="solution-tag indigo">AUTONOMIE NOMADE & INSTANTANÉE</span>
+          <h3>Application Mobile OTO</h3>
+          <p>L'application compagnon conçue pour les parents et enseignants en déplacement.</p>
+          <ul class="solution-features">
+            <li><span class="dot indigo"></span> Notifications push en temps réel</li>
+            <li><span class="dot indigo"></span> Chat fluide avec l'administration</li>
+            <li><span class="dot indigo"></span> Consultation hors ligne des notes</li>
+          </ul>
+        </div>
+        <button class="btn-secondary full-width">
+          <span>Téléchargement Mobile (.apk / .ipa) (Disponible bientôt)</span>
+          <span class="material-icons" style="font-size:16px">download</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FONCTIONNALITES -->
+  <section id="fonctionnalites" class="section border-top">
+    <div class="section-header">
+      <p class="section-tag">PANORAMA TECHNIQUE</p>
+      <h2 class="section-title">Fonctionnalités Clés par Rôle</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <!-- Role tabs -->
+    <div class="role-tabs">
+      <div class="role-tabs-inner">
+        <button
+          *ngFor="let tab of [
+            {id:'admin', label:'Parcours Admin', icon:'admin_panel_settings'},
+            {id:'parent', label:'Parcours Parent', icon:'family_restroom'},
+            {id:'teacher', label:'Parcours Enseignant', icon:'school'}
+          ]"
+          (click)="activeRoleTab = $any(tab.id)"
+          [class.active]="activeRoleTab === tab.id"
+          class="role-tab">
+          <span class="material-icons">{{ tab.icon }}</span>
+          {{ tab.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Admin features -->
+    <div class="features-grid" *ngIf="activeRoleTab === 'admin'">
+      <div class="feature-card" *ngFor="let feat of adminFeatures">
+        <div class="icon-box sky small">
+          <span class="material-icons">{{ feat.icon }}</span>
+        </div>
+        <h4>{{ feat.title }}</h4>
+        <p>{{ feat.desc }}</p>
+      </div>
+    </div>
+
+    <!-- Parent features -->
+    <div *ngIf="activeRoleTab === 'parent'">
+      <div class="features-grid three-cols">
+        <div class="feature-card indigo" *ngFor="let feat of parentFeatures">
+          <div class="icon-box indigo">
+            <span class="material-icons">{{ feat.icon }}</span>
+          </div>
+          <h4>{{ feat.title }}</h4>
+          <p>{{ feat.desc }}</p>
+        </div>
+      </div>
+      <div class="parent-cta">
+        <p>Vous êtes un parent d'élève inscrit ?</p>
+        <button class="btn-indigo" (click)="goToParentLogin()">
+          <span class="material-icons" style="font-size:16px">family_restroom</span>
+          Suivre mon enfant
+        </button>
+      </div>
+    </div>
+
+    <!-- Teacher features -->
+    <div class="features-grid" *ngIf="activeRoleTab === 'teacher'">
+      <div class="feature-card" *ngFor="let feat of teacherFeatures">
+        <div class="icon-box sky small">
+          <span class="material-icons">{{ feat.icon }}</span>
+        </div>
+        <h4>{{ feat.title }}</h4>
+        <p>{{ feat.desc }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section border-top">
+    <div class="section-header">
+      <p class="section-tag red">SOUTIEN EXCLUSIF</p>
+      <h2 class="section-title">Contactez notre Équipe d'Experts</h2>
+      <div class="section-divider red"></div>
+    </div>
+
+    <div class="contact-card">
+      <!-- Success -->
+      <div class="contact-success" *ngIf="isSubmitted">
+        <div class="success-icon">
+          <span class="material-icons">check_circle</span>
+        </div>
+        <h3>Message Envoyé !</h3>
+        <p>Un conseiller OTO School entrera en contact avec vous dans les 24 heures.</p>
+        <p class="text-muted">Réinitialisation automatique...</p>
+      </div>
+
+      <!-- Form -->
+      <form *ngIf="!isSubmitted" (ngSubmit)="submitContact()" class="contact-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" class="input-field" placeholder="e.g. Kouassi"
+              [(ngModel)]="contactForm.lastName" name="lastName" required />
+          </div>
+          <div class="form-group">
+            <label>Prénom *</label>
+            <input type="text" class="input-field" placeholder="e.g. Jean"
+              [(ngModel)]="contactForm.firstName" name="firstName" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Adresse Email *</label>
+            <input type="email" class="input-field" placeholder="contact@nom.com"
+              [(ngModel)]="contactForm.email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label>Numéro de Téléphone *</label>
+            <input type="tel" class="input-field" placeholder="+229 01 02 03 04 05"
+              [(ngModel)]="contactForm.phone" name="phone" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Objet du Message *</label>
+          <input type="text" class="input-field" placeholder="Saisie de l'objet du contact"
+            [(ngModel)]="contactForm.subject" name="subject" required />
+        </div>
+        <div class="form-group">
+          <label>Votre Message *</label>
+          <textarea class="input-field" rows="4" placeholder="Exprimez votre besoin..."
+            [(ngModel)]="contactForm.message" name="message" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary full-width">
+          <span>Envoyer la demande</span>
+          <span class="material-icons" style="font-size:16px">send</span>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <p>© 2026 OTO SCHOOL MANAGEMENT. Tous droits réservés.</p>
+    <p>Conçu pour la digitalisation des écoles, académies et parentés d'élèves.</p>
+  </footer>
+
+</div>
