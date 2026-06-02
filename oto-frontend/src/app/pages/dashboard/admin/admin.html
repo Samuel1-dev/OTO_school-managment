@@ -1,1 +1,366 @@
-<p>admin works!</p>
+<div class="dashboard-root">
+
+  <!-- Sidebar -->
+  <app-sidebar
+    [navItems]="navItems"
+    [activeSection]="activeSection"
+    [ecoleNom]="ecoleNom"
+    [isOpen]="sidebarOpen"
+    (sectionChange)="activeSection = $event"
+    (closeSidebar)="sidebarOpen = false">
+  </app-sidebar>
+
+  <!-- Main -->
+  <div class="dashboard-main">
+
+    <!-- Header -->
+    <app-header
+      [ecoleNom]="ecoleNom"
+      [role]="'admin'"
+      [userName]="userName"
+      (toggleSidebar)="sidebarOpen = !sidebarOpen">
+    </app-header>
+
+    <!-- Content -->
+    <div class="dashboard-content">
+
+      <!-- Success message -->
+      <div class="success-banner" *ngIf="formSuccess">
+        <span class="material-icons">check_circle</span>
+        {{ formSuccess }}
+      </div>
+
+      <!-- VUE GENERALE -->
+      <section *ngIf="activeSection === 'vue-generale'">
+        <div class="section-header">
+          <h2>Vue Générale</h2>
+          <p>Tableau de bord de votre établissement</p>
+        </div>
+
+        <div class="stats-grid">
+          <app-stat-card
+            title="Total Membres"
+            [value]="stats.membres"
+            icon="groups"
+            color="sky">
+          </app-stat-card>
+          <app-stat-card
+            title="Professeurs"
+            [value]="stats.professeurs"
+            icon="school"
+            color="green">
+          </app-stat-card>
+          <app-stat-card
+            title="Secrétaires"
+            [value]="stats.secretaires"
+            icon="badge"
+            color="orange">
+          </app-stat-card>
+          <app-stat-card
+            title="Superviseurs"
+            [value]="stats.superviseurs"
+            icon="supervisor_account"
+            color="purple">
+          </app-stat-card>
+        </div>
+
+        <!-- Membres récents -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3>Membres récents</h3>
+            <button class="btn-sm sky" (click)="activeSection = 'personnel'">
+              Voir tout
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Email</th>
+                  <th>Identifiant</th>
+                  <th>Rôle</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of membres.slice(0, 5)">
+                  <td>
+                    <div class="member-name">
+                      <div class="avatar" [class]="getRoleColor(m.role)">
+                        {{ m.prenom[0] }}{{ m.nom[0] }}
+                      </div>
+                      {{ m.prenom }} {{ m.nom }}
+                    </div>
+                  </td>
+                  <td class="text-muted">{{ m.email }}</td>
+                  <td><span class="badge sky">{{ m.identifiant }}</span></td>
+                  <td><span class="badge" [class]="getRoleColor(m.role)">{{ getRoleLabel(m.role) }}</span></td>
+                  <td>
+                    <span class="badge" [class]="m.actif ? 'green' : 'red'">
+                      {{ m.actif ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="membres.length === 0">
+                  <td colspan="5" class="empty-row">Aucun membre</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- GESTION PERSONNEL -->
+      <section *ngIf="activeSection === 'personnel'">
+        <div class="section-header">
+          <div>
+            <h2>Gestion du Personnel</h2>
+            <p>Créez et gérez les comptes de votre équipe</p>
+          </div>
+          <button class="btn-primary" (click)="showAddMembre = true">
+            <span class="material-icons">person_add</span>
+            Ajouter un membre
+          </button>
+        </div>
+
+        <!-- Add membre modal -->
+        <div class="modal-overlay" *ngIf="showAddMembre" (click)="showAddMembre = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Ajouter un membre</h3>
+              <button class="modal-close" (click)="showAddMembre = false; resetMembreForm()">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="error-box" *ngIf="formError">
+              <span class="material-icons">error_outline</span>
+              {{ formError }}
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" class="input-field" placeholder="Dupont"
+                  [(ngModel)]="membreForm.nom" />
+              </div>
+              <div class="form-group">
+                <label>Prénom *</label>
+                <input type="text" class="input-field" placeholder="Jean"
+                  [(ngModel)]="membreForm.prenom" />
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" class="input-field" placeholder="jean@ecole.com"
+                  [(ngModel)]="membreForm.email" />
+              </div>
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" class="input-field" placeholder="+229 01234567"
+                  [(ngModel)]="membreForm.telephone" />
+              </div>
+              <div class="form-group">
+                <label>Rôle *</label>
+                <select class="input-field" [(ngModel)]="membreForm.role">
+                  <option value="professeur">Professeur</option>
+                  <option value="secretaire">Secrétaire</option>
+                  <option value="superviseur">Superviseur</option>
+                  <option value="autre">Autre membre</option>
+                </select>
+              </div>
+              <div class="form-group" *ngIf="membreForm.role === 'professeur'">
+                <label>Matières enseignées *</label>
+                <input type="text" class="input-field"
+                    placeholder="Ex: Mathématiques, Physique, SVT"
+                    [(ngModel)]="membreForm.matieres" />
+                <small class="hint">Séparez les matières par des virgules</small>
+                </div>
+                 <div class="form-group" *ngIf="membreForm.role === 'superviseur'">
+                <label>Type superviseur</label>
+                <select class="input-field" [(ngModel)]="membreForm.type_superviseur">
+                  <option value="censeur">Censeur</option>
+                  <option value="surveillant">Surveillant</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+  <button class="btn-secondary" (click)="showAddMembre = false; resetMembreForm()">
+    Annuler
+  </button>
+  <button class="btn-primary" (click)="addMembre()" [disabled]="isSubmitting">
+    <span class="spinner-sm" *ngIf="isSubmitting"></span>
+    <span class="material-icons" *ngIf="!isSubmitting">check</span>
+    {{ isSubmitting ? 'Création...' : 'Créer le compte' }}
+  </button>
+</div>
+          </div>
+        </div>
+
+        <!-- Table membres -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Membre</th>
+                  <th>Email</th>
+                  <th>Identifiant</th>
+                  <th>Rôle</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of membres">
+                  <td>
+                    <div class="member-name">
+                      <div class="avatar" [class]="getRoleColor(m.role)">
+                        {{ m.prenom[0] }}{{ m.nom[0] }}
+                      </div>
+                      {{ m.prenom }} {{ m.nom }}
+                    </div>
+                  </td>
+                  <td class="text-muted">{{ m.email }}</td>
+                  <td><span class="badge sky">{{ m.identifiant }}</span></td>
+                  <td><span class="badge" [class]="getRoleColor(m.role)">{{ getRoleLabel(m.role) }}</span></td>
+                  <td>
+                    <span class="badge" [class]="m.actif ? 'green' : 'red'">
+                      {{ m.actif ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-btns" *ngIf="m.role !== 'admin'">
+                      <button class="btn-icon red" (click)="supprimerMembre(m.id)"
+                        title="Supprimer">
+                        <span class="material-icons">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="membres.length === 0">
+                  <td colspan="6" class="empty-row">Aucun membre enregistré</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNONCES -->
+      <section *ngIf="activeSection === 'annonces'">
+        <div class="section-header">
+          <div>
+            <h2>Annonces & Communication</h2>
+            <p>Publiez des annonces pour votre équipe et les parents</p>
+          </div>
+          <button class="btn-primary" (click)="showAddAnnonce = true">
+            <span class="material-icons">add</span>
+            Nouvelle annonce
+          </button>
+        </div>
+
+        <!-- Add annonce modal -->
+        <div class="modal-overlay" *ngIf="showAddAnnonce" (click)="showAddAnnonce = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Nouvelle annonce</h3>
+              <button class="modal-close" (click)="showAddAnnonce = false">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="error-box" *ngIf="formError">
+              <span class="material-icons">error_outline</span>
+              {{ formError }}
+            </div>
+
+            <div class="form-grid single">
+              <div class="form-group">
+                <label>Titre *</label>
+                <input type="text" class="input-field" placeholder="Titre de l'annonce"
+                  [(ngModel)]="annonceForm.titre" />
+              </div>
+              <div class="form-group">
+                <label>Destinataires *</label>
+                <select class="input-field" [(ngModel)]="annonceForm.cible">
+                  <option value="tous">Tous</option>
+                  <option value="membres">Personnel uniquement</option>
+                  <option value="parents">Parents uniquement</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Contenu *</label>
+                <textarea class="input-field" rows="4" placeholder="Contenu de l'annonce..."
+                  [(ngModel)]="annonceForm.contenu"></textarea>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn-secondary" (click)="showAddAnnonce = false">Annuler</button>
+              <button class="btn-primary" (click)="addAnnonce()" [disabled]="isLoading">
+                <span class="material-icons">send</span>
+                Publier
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="annonces.length === 0">
+          <span class="material-icons">campaign</span>
+          <p>Aucune annonce publiée</p>
+          <button class="btn-primary" (click)="showAddAnnonce = true">
+            Publier une annonce
+          </button>
+        </div>
+      </section>
+
+      <!-- CLASSES -->
+      <section *ngIf="activeSection === 'classes'">
+        <div class="section-header">
+          <div>
+            <h2>Classes & Salles</h2>
+            <p>Gérez les classes et salles de votre établissement</p>
+          </div>
+        </div>
+        <div class="empty-state">
+          <span class="material-icons">class</span>
+          <p>Gestion des classes disponible prochainement</p>
+        </div>
+      </section>
+
+      <!-- EPREUVES -->
+      <section *ngIf="activeSection === 'epreuves'">
+        <div class="section-header">
+          <h2>Bibliothèque d'Épreuves</h2>
+          <p>Consultez les épreuves publiées par les professeurs</p>
+        </div>
+        <div class="empty-state">
+          <span class="material-icons">local_library</span>
+          <p>Bibliothèque disponible prochainement</p>
+        </div>
+      </section>
+
+      <!-- PROFIL -->
+      <section *ngIf="activeSection === 'profil'">
+        <div class="section-header">
+          <h2>Profil & Paramètres</h2>
+          <p>Gérez votre profil et les informations de l'école</p>
+        </div>
+        <div class="card">
+          <div class="profil-header">
+            <div class="avatar large sky">
+              {{ userName ? userName[0].toUpperCase() : 'A' }}
+            </div>
+            <div>
+              <h3>{{ userName }}</h3>
+              <p class="text-muted">Administrateur — {{ ecoleNom }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>

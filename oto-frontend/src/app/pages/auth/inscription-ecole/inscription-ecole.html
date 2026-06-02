@@ -1,1 +1,193 @@
-<p>inscription-ecole works!</p>
+<div class="auth-root">
+
+  <div class="glow-sky" style="width:400px;height:400px;top:-10%;right:-5%;"></div>
+  <div class="glow-indigo" style="width:300px;height:300px;bottom:-10%;left:-5%;"></div>
+
+  <!-- HEADER -->
+  <header class="auth-header">
+    <div class="header-inner">
+      <div class="logo" (click)="goBack()">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OTO <span class="sky">School</span></span>
+      </div>
+      <button class="btn-outline" (click)="goBack()">
+        <span class="material-icons" style="font-size:16px">arrow_back</span>
+        Retour
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="auth-main">
+    <div class="auth-card wide">
+
+      <!-- STEP 3 — Succès -->
+      <div class="success-view" *ngIf="currentStep === 3">
+        <div class="success-icon">
+          <span class="material-icons">hourglass_top</span>
+        </div>
+        <h2>Inscription soumise !</h2>
+        <p>
+          Votre demande d'inscription a été envoyée avec succès.
+          Un administrateur va vérifier vos informations et valider votre école.
+          Vous recevrez un email de confirmation.
+        </p>
+        <div class="success-info">
+          <span class="material-icons">info</span>
+          La validation peut prendre 24 à 48 heures ouvrables.
+        </div>
+        <button class="btn-submit" (click)="goToLogin()">
+          <span class="material-icons">login</span>
+          Aller à la connexion
+        </button>
+      </div>
+
+      <!-- STEPS 1 & 2 -->
+      <ng-container *ngIf="currentStep !== 3">
+
+        <!-- Progress -->
+        <div class="steps-progress">
+          <div class="step-item" [class.active]="currentStep >= 1" [class.done]="currentStep > 1">
+            <div class="step-circle">
+              <span class="material-icons" *ngIf="currentStep > 1">check</span>
+              <span *ngIf="currentStep <= 1">1</span>
+            </div>
+            <span>Infos de l'école</span>
+          </div>
+          <div class="step-line" [class.active]="currentStep > 1"></div>
+          <div class="step-item" [class.active]="currentStep >= 2">
+            <div class="step-circle">2</div>
+            <span>Compte Admin</span>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div class="auth-title">
+          <h1>{{ currentStep === 1 ? 'Inscrire votre école' : 'Créer le compte administrateur' }}</h1>
+          <p>{{ currentStep === 1 ? 'Étape 1 sur 2 — Informations de l\'établissement' : 'Étape 2 sur 2 — Compte de l\'administrateur' }}</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-box" *ngIf="errorMessage">
+          <span class="material-icons">error_outline</span>
+          {{ errorMessage }}
+        </div>
+
+        <!-- STEP 1 — École -->
+        <form *ngIf="currentStep === 1" (ngSubmit)="nextStep()" class="auth-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nom de l'école *</label>
+              <input type="text" class="input-field" placeholder="Lycée Excellence"
+                [(ngModel)]="ecoleForm.nom" name="nom" required />
+            </div>
+            <div class="form-group">
+              <label>Ville *</label>
+              <input type="text" class="input-field" placeholder="Cotonou"
+                [(ngModel)]="ecoleForm.ville" name="ville" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nom du fondateur *</label>
+              <input type="text" class="input-field" placeholder="Jean Dupont"
+                [(ngModel)]="ecoleForm.nom_fondateur" name="nom_fondateur" required />
+            </div>
+            <div class="form-group">
+              <label>Boîte postale</label>
+              <input type="text" class="input-field" placeholder="01 BP 456"
+                [(ngModel)]="ecoleForm.boite_postale" name="boite_postale" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email de l'école *</label>
+              <input type="email" class="input-field" placeholder="contact@ecole.com"
+                [(ngModel)]="ecoleForm.email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label>Téléphone *</label>
+              <input type="tel" class="input-field" placeholder="+229 01234567"
+                [(ngModel)]="ecoleForm.telephone" name="telephone" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description (optionnelle)</label>
+            <textarea class="input-field" rows="3" placeholder="Décrivez votre établissement..."
+              [(ngModel)]="ecoleForm.description" name="description"></textarea>
+          </div>
+          <button type="submit" class="btn-submit">
+            <span>Continuer</span>
+            <span class="material-icons">arrow_forward</span>
+          </button>
+        </form>
+
+        <!-- STEP 2 — Admin -->
+        <form *ngIf="currentStep === 2" (ngSubmit)="onSubmit()" class="auth-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nom *</label>
+              <input type="text" class="input-field" placeholder="Dupont"
+                [(ngModel)]="adminForm.nom" name="nom" required />
+            </div>
+            <div class="form-group">
+              <label>Prénom *</label>
+              <input type="text" class="input-field" placeholder="Jean"
+                [(ngModel)]="adminForm.prenom" name="prenom" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" class="input-field" placeholder="admin@ecole.com"
+                [(ngModel)]="adminForm.email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label>Téléphone</label>
+              <input type="tel" class="input-field" placeholder="+229 01234567"
+                [(ngModel)]="adminForm.telephone" name="telephone" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mot de passe *</label>
+              <div class="input-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" class="input-field"
+                  placeholder="••••••••" [(ngModel)]="adminForm.mot_de_passe"
+                  name="mot_de_passe" required />
+                <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+                  <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirmer le mot de passe *</label>
+              <div class="input-wrapper">
+                <input [type]="showConfirmPassword ? 'text' : 'password'" class="input-field"
+                  placeholder="••••••••" [(ngModel)]="adminForm.confirmer_mot_de_passe"
+                  name="confirmer_mot_de_passe" required />
+                <button type="button" class="toggle-password" (click)="showConfirmPassword = !showConfirmPassword">
+                  <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-back" (click)="prevStep()">
+              <span class="material-icons">arrow_back</span>
+              Retour
+            </button>
+            <button type="submit" class="btn-submit flex-1" [disabled]="isLoading">
+              <span class="spinner" *ngIf="isLoading"></span>
+              <span class="material-icons" *ngIf="!isLoading">check</span>
+              {{ isLoading ? 'Envoi...' : "S'inscrire" }}
+            </button>
+          </div>
+        </form>
+
+      </ng-container>
+
+    </div>
+  </main>
+</div>

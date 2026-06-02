@@ -1,1 +1,134 @@
-<p>inscription-parent works!</p>
+<div class="auth-root">
+
+  <div class="glow-sky" style="width:400px;height:400px;top:-10%;right:-5%;"></div>
+  <div class="glow-indigo" style="width:300px;height:300px;bottom:-10%;left:-5%;"></div>
+
+  <!-- HEADER -->
+  <header class="auth-header">
+    <div class="header-inner">
+      <div class="logo" (click)="goBack()">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OTO <span class="sky">School</span></span>
+      </div>
+      <button class="btn-outline" (click)="goBack()">
+        <span class="material-icons" style="font-size:16px">arrow_back</span>
+        Retour
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="auth-main">
+    <div class="auth-card">
+
+      <!-- SUCCESS -->
+      <div class="success-view" *ngIf="isSuccess">
+        <div class="success-icon">
+          <span class="material-icons">check_circle</span>
+        </div>
+        <h2>Inscription réussie !</h2>
+        <p>Votre compte parent a été créé avec succès. Vous pouvez maintenant vous connecter pour suivre vos enfants.</p>
+        <button class="btn-submit indigo" (click)="goToLogin()">
+          <span class="material-icons">login</span>
+          Se connecter
+        </button>
+      </div>
+
+      <!-- FORM -->
+      <ng-container *ngIf="!isSuccess">
+
+        <div class="auth-icon indigo">
+          <span class="material-icons">family_restroom</span>
+        </div>
+
+        <div class="auth-title">
+          <h1>Inscription Parent</h1>
+          <p>Créez votre compte pour suivre la scolarité de vos enfants</p>
+        </div>
+
+        <div class="error-box" *ngIf="errorMessage">
+          <span class="material-icons">error_outline</span>
+          {{ errorMessage }}
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="auth-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nom *</label>
+              <input type="text" class="input-field" placeholder="Kouassi"
+                [(ngModel)]="form.nom" name="nom" required />
+            </div>
+            <div class="form-group">
+              <label>Prénom *</label>
+              <input type="text" class="input-field" placeholder="Jean"
+                [(ngModel)]="form.prenom" name="prenom" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" class="input-field" placeholder="votre@email.com"
+              [(ngModel)]="form.email" name="email" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Téléphone</label>
+              <input type="tel" class="input-field" placeholder="+229 01234567"
+                [(ngModel)]="form.telephone" name="telephone" />
+            </div>
+            <div class="form-group">
+              <label>Profession</label>
+              <input type="text" class="input-field" placeholder="Ingénieur"
+                [(ngModel)]="form.profession" name="profession" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mot de passe *</label>
+              <div class="input-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" class="input-field"
+                  placeholder="••••••••" [(ngModel)]="form.mot_de_passe"
+                  name="mot_de_passe" required />
+                <button type="button" class="toggle-password"
+                  (click)="showPassword = !showPassword">
+                  <span class="material-icons">
+                    {{ showPassword ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirmer mot de passe *</label>
+              <div class="input-wrapper">
+                <input [type]="showConfirmPassword ? 'text' : 'password'" class="input-field"
+                  placeholder="••••••••" [(ngModel)]="form.confirmer_mot_de_passe"
+                  name="confirmer_mot_de_passe" required />
+                <button type="button" class="toggle-password"
+                  (click)="showConfirmPassword = !showConfirmPassword">
+                  <span class="material-icons">
+                    {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit indigo" [disabled]="isLoading">
+            <span class="spinner" *ngIf="isLoading"></span>
+            <span class="material-icons" *ngIf="!isLoading">person_add</span>
+            {{ isLoading ? 'Inscription...' : "S'inscrire" }}
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <p>Déjà un compte ?
+            <span class="link" (click)="goToLogin()">Se connecter</span>
+          </p>
+        </div>
+
+      </ng-container>
+    </div>
+  </main>
+</div>

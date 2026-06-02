@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { LandingRoutingModule } from './landing-routing-module';
 import { Landing } from './landing/landing';
 import { FormsModule } from '@angular/forms';
+import { SharedModule } from '../../shared/shared-module';
 
 @NgModule({
   declarations: [Landing],
@@ -11,6 +12,7 @@ import { FormsModule } from '@angular/forms';
     CommonModule, 
     LandingRoutingModule,
     FormsModule,
+    SharedModule
   
   ],
 })

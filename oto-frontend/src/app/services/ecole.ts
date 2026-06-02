@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Ecole } from '../models/index';
 
 @Injectable({
   providedIn: 'root',
@@ -11,19 +10,37 @@ export class EcoleService {
 
   constructor(private http: HttpClient) {}
 
-  listEcoles(): Observable<Ecole[]> {
-    return this.http.get<Ecole[]>(`${this.apiUrl}/backoffice/ecoles`);
+  // École connectée
+  getEcole(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ecole`);
   }
 
-  listEcolesEnAttente(): Observable<Ecole[]> {
-    return this.http.get<Ecole[]>(`${this.apiUrl}/backoffice/ecoles/en-attente`);
+  updateEcole(data: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/ecole`, data);
   }
 
-  validerEcole(id: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/backoffice/ecoles/${id}/valider`, {});
+  getStatistiques(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/ecole/statistiques`);
   }
 
-  rejeterEcole(id: string, motif: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/backoffice/ecoles/${id}/rejeter`, { motif });
+  // Membres
+  getMembres(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/ecole/membres`);
+  }
+
+  creerMembre(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/ecole/membres`, data);
+  }
+
+  desactiverMembre(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/ecole/membres/${id}/desactiver`, {});
+  }
+
+  reactiverMembre(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/ecole/membres/${id}/reactiver`, {});
+  }
+
+  supprimerMembre(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/ecole/membres/${id}`);
   }
 }

@@ -1,0 +1,10 @@
+<div class="stat-card" [class]="color">
+  <div class="stat-icon" [class]="color">
+    <span class="material-icons">{{ icon }}</span>
+  </div>
+  <div class="stat-content">
+    <p class="stat-title">{{ title }}</p>
+    <p class="stat-value">{{ value }}</p>
+    <p class="stat-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+  </div>
+</div>

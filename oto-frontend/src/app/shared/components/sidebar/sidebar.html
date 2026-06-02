@@ -1,0 +1,30 @@
+<aside class="sidebar" [class.open]="isOpen">
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-icon">O</div>
+    <span class="logo-text" *ngIf="isOpen">OTO <span class="sky">School</span></span>
+  </div>
+
+  <!-- Ecole -->
+  <div class="sidebar-ecole" *ngIf="isOpen && ecoleNom">
+    <span class="material-icons">business</span>
+    <span class="ecole-name">{{ ecoleNom }}</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <button
+      *ngFor="let item of navItems"
+      class="nav-item"
+      [class.active]="activeSection === item.id"
+      (click)="selectSection(item.id)">
+      <span class="material-icons">{{ item.icon }}</span>
+      <span class="nav-label" *ngIf="isOpen">{{ item.label }}</span>
+    </button>
+  </nav>
+
+</aside>
+
+<!-- Overlay mobile -->
+<div class="sidebar-overlay" *ngIf="isOpen" (click)="closeSidebar.emit()"></div>

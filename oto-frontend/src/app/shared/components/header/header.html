@@ -1,0 +1,43 @@
+<header class="dashboard-header">
+  <div class="header-left">
+    <button class="menu-toggle" (click)="toggleSidebar.emit()">
+      <span class="material-icons">menu</span>
+    </button>
+    <div class="ecole-info">
+      <h2 class="ecole-nom">{{ ecoleNom || 'OTO School' }}</h2>
+      <span class="ecole-status">
+        <span class="status-dot"></span>
+        ACTIF
+      </span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-menu-wrapper">
+      <button class="user-btn" (click)="toggleMenu()">
+        <div class="user-avatar" [class]="getRoleColor()">
+          {{ userName ? userName[0].toUpperCase() : 'U' }}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ userName || 'Utilisateur' }}</span>
+          <span class="user-role" [class]="getRoleColor()">{{ getRoleLabel() }}</span>
+        </div>
+        <span class="material-icons chevron">
+          {{ showUserMenu ? 'expand_less' : 'expand_more' }}
+        </span>
+      </button>
+
+      <div class="user-dropdown" *ngIf="showUserMenu">
+        <div class="dropdown-header">
+          <p class="dropdown-name">{{ userName }}</p>
+          <p class="dropdown-role">{{ getRoleLabel() }}</p>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item danger" (click)="logout()">
+          <span class="material-icons">logout</span>
+          Se déconnecter
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

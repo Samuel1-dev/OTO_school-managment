@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 // Services
 import { AuthService } from '../services/auth';
@@ -19,13 +20,23 @@ import { AnnonceService } from '../services/annonce';
 import { EmploiTempsService } from '../services/emploi-temps';
 import { UtilService } from './utils/util.service';
 
+// Composants partagés
+import { Sidebar } from './components/sidebar/sidebar';
+import { Header } from './components/header/header';
+import { StatCard } from './components/stat-card/stat-card';
+
 @NgModule({
-  declarations: [],
+  declarations: [
+    Sidebar,
+    Header,
+    StatCard,
+  ],
   imports: [
     CommonModule,
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
   ],
   providers: [
     AuthService,
@@ -48,6 +59,10 @@ import { UtilService } from './utils/util.service';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
+    Sidebar,
+    Header,
+    StatCard,
   ],
 })
 export class SharedModule {}

@@ -1,1 +1,89 @@
-<p>changer-mot-de-passe works!</p>
+<div class="auth-root">
+
+  <div class="glow-sky" style="width:400px;height:400px;top:-10%;right:-5%;"></div>
+  <div class="glow-indigo" style="width:300px;height:300px;bottom:-10%;left:-5%;"></div>
+
+  <main class="auth-main">
+    <div class="auth-card">
+
+      <div class="auth-icon">
+        <span class="material-icons">lock_reset</span>
+      </div>
+
+      <div class="auth-title">
+        <h1>Changer le mot de passe</h1>
+        <p>Pour des raisons de sécurité, vous devez changer votre mot de passe avant de continuer.</p>
+      </div>
+
+      <div class="info-box">
+        <span class="material-icons">info</span>
+        Votre mot de passe par défaut est <strong>0000</strong>. Choisissez un nouveau mot de passe sécurisé.
+      </div>
+
+      <div class="error-box" *ngIf="errorMessage">
+        <span class="material-icons">error_outline</span>
+        {{ errorMessage }}
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label>Ancien mot de passe *</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">lock</span>
+            <input
+              [type]="showAncien ? 'text' : 'password'"
+              class="input-field"
+              placeholder="••••••••"
+              [(ngModel)]="form.ancien_mot_de_passe"
+              name="ancien_mot_de_passe"
+              required />
+            <button type="button" class="toggle-password" (click)="showAncien = !showAncien">
+              <span class="material-icons">{{ showAncien ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nouveau mot de passe *</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">lock_open</span>
+            <input
+              [type]="showNouveau ? 'text' : 'password'"
+              class="input-field"
+              placeholder="••••••••"
+              [(ngModel)]="form.nouveau_mot_de_passe"
+              name="nouveau_mot_de_passe"
+              required />
+            <button type="button" class="toggle-password" (click)="showNouveau = !showNouveau">
+              <span class="material-icons">{{ showNouveau ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmer le nouveau mot de passe *</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">lock_open</span>
+            <input
+              [type]="showConfirm ? 'text' : 'password'"
+              class="input-field"
+              placeholder="••••••••"
+              [(ngModel)]="form.confirmer_mot_de_passe"
+              name="confirmer_mot_de_passe"
+              required />
+            <button type="button" class="toggle-password" (click)="showConfirm = !showConfirm">
+              <span class="material-icons">{{ showConfirm ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="isLoading">
+          <span class="spinner" *ngIf="isLoading"></span>
+          <span class="material-icons" *ngIf="!isLoading">check</span>
+          {{ isLoading ? 'Enregistrement...' : 'Confirmer le changement' }}
+        </button>
+      </form>
+
+    </div>
+  </main>
+</div>

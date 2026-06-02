@@ -1,1 +1,101 @@
-<p>login works!</p>
+<div class="auth-root">
+
+  <!-- Background glows -->
+  <div class="glow-sky" style="width:400px;height:400px;top:-10%;right:-5%;"></div>
+  <div class="glow-indigo" style="width:300px;height:300px;bottom:-10%;left:-5%;"></div>
+
+  <!-- HEADER -->
+  <header class="auth-header">
+    <div class="header-inner">
+      <div class="logo" (click)="goBack()">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">OTO <span class="sky">School</span></span>
+      </div>
+      <button class="btn-outline" (click)="goBack()">
+        <span class="material-icons" style="font-size:16px">arrow_back</span>
+        Retour
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="auth-main">
+    <div class="auth-card">
+
+      <!-- Icon -->
+      <div class="auth-icon" [class.indigo]="isParent">
+        <span class="material-icons">
+          {{ isParent ? 'family_restroom' : 'school' }}
+        </span>
+      </div>
+
+      <!-- Title -->
+      <div class="auth-title">
+        <h1>{{ isParent ? 'Espace Parent' : 'Espace Académie' }}</h1>
+        <p>{{ isParent ? 'Connectez-vous pour suivre vos enfants' : 'Connectez-vous à votre établissement' }}</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box" *ngIf="errorMessage">
+        <span class="material-icons">error_outline</span>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label>Adresse Email</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">email</span>
+            <input
+              type="email"
+              class="input-field"
+              placeholder="votre@email.com"
+              [(ngModel)]="form.email"
+              name="email"
+              required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">lock</span>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="input-field"
+              placeholder="••••••••"
+              [(ngModel)]="form.mot_de_passe"
+              name="mot_de_passe"
+              required />
+            <button type="button" class="toggle-password" (click)="togglePassword()">
+              <span class="material-icons">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [class.indigo]="isParent"
+          [disabled]="isLoading">
+          <span class="material-icons" *ngIf="!isLoading">login</span>
+          <span class="spinner" *ngIf="isLoading"></span>
+          {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+      </form>
+
+      <!-- Footer -->
+      <div class="auth-footer">
+        <p>Pas encore de compte ?
+          <span class="link" (click)="goToInscription()">
+            {{ isParent ? "S'inscrire" : "Inscrire mon école" }}
+          </span>
+        </p>
+      </div>
+
+    </div>
+  </main>
+</div>

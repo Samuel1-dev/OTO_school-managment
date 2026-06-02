@@ -1,0 +1,6 @@
+{
+  "name": "OTO School Management",
+  "description": "Plateforme complète de gestion de établissements scolaires reliant l'administration, les enseignants et les parents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

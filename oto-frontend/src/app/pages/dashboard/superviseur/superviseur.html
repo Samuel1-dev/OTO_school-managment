@@ -1,1 +1,243 @@
-<p>superviseur works!</p>
+<div class="dashboard-root">
+
+  <app-sidebar
+    [navItems]="navItems"
+    [activeSection]="activeSection"
+    [ecoleNom]="ecoleNom"
+    [isOpen]="sidebarOpen"
+    (sectionChange)="activeSection = $event"
+    (closeSidebar)="sidebarOpen = false">
+  </app-sidebar>
+
+  <div class="dashboard-main">
+
+    <app-header
+      [ecoleNom]="ecoleNom"
+      [role]="'superviseur'"
+      [userName]="userName"
+      (toggleSidebar)="sidebarOpen = !sidebarOpen">
+    </app-header>
+
+    <div class="dashboard-content">
+
+      <div class="success-banner" *ngIf="formSuccess">
+        <span class="material-icons">check_circle</span>
+        {{ formSuccess }}
+      </div>
+
+      <!-- VUE GENERALE -->
+      <section *ngIf="activeSection === 'vue-generale'">
+        <div class="section-header">
+          <h2>Vue Générale</h2>
+          <p>Tableau de bord de l'établissement</p>
+        </div>
+
+        <div class="stats-grid">
+          <app-stat-card title="Total Membres" [value]="stats.membres"
+            icon="groups" color="sky"></app-stat-card>
+          <app-stat-card title="Professeurs" [value]="stats.professeurs"
+            icon="school" color="green"></app-stat-card>
+          <app-stat-card title="Absences enregistrées" [value]="absences.length"
+            icon="event_busy" color="orange"></app-stat-card>
+          <app-stat-card title="Superviseurs" [value]="stats.superviseurs"
+            icon="supervisor_account" color="purple"></app-stat-card>
+        </div>
+
+        <!-- Absences récentes -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3>Absences récentes</h3>
+            <button class="btn-sm sky" (click)="activeSection = 'absences'">Voir tout</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Élève</th>
+                  <th>Date</th>
+                  <th>Durée</th>
+                  <th>Motif</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of absences.slice(0, 5)">
+                  <td class="text-white">{{ a.eleve?.nom }} {{ a.eleve?.prenom }}</td>
+                  <td class="text-muted">{{ a.date }}</td>
+                  <td>{{ a.duree_heures }}h</td>
+                  <td class="text-muted">{{ a.motif || 'Sans motif' }}</td>
+                  <td>
+                    <span class="badge" [class]="a.justifiee ? 'green' : 'orange'">
+                      {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="absences.length === 0">
+                  <td colspan="5" class="empty-row">Aucune absence enregistrée</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABSENCES -->
+      <section *ngIf="activeSection === 'absences'">
+        <div class="section-header">
+          <div>
+            <h2>Gestion des Absences</h2>
+            <p>Enregistrez et gérez les absences des élèves</p>
+          </div>
+          <button class="btn-primary" (click)="showAddAbsence = true">
+            <span class="material-icons">add</span>
+            Enregistrer une absence
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Élève</th>
+                  <th>Date</th>
+                  <th>Durée</th>
+                  <th>Motif</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of absences">
+                  <td class="text-white">{{ a.eleve?.nom }} {{ a.eleve?.prenom }}</td>
+                  <td class="text-muted">{{ a.date }}</td>
+                  <td>{{ a.duree_heures }}h</td>
+                  <td class="text-muted">{{ a.motif || 'Sans motif' }}</td>
+                  <td>
+                    <span class="badge" [class]="a.justifiee ? 'green' : 'orange'">
+                      {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      <button class="btn-icon sky" *ngIf="!a.justifiee"
+                        (click)="justifierAbsence(a.id)" title="Justifier">
+                        <span class="material-icons">check</span>
+                      </button>
+                      <button class="btn-icon orange"
+                        (click)="contacterParent(a.eleve_id)" title="Contacter parent">
+                        <span class="material-icons">mail</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="absences.length === 0">
+                  <td colspan="6" class="empty-row">Aucune absence enregistrée</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EPREUVES -->
+      <section *ngIf="activeSection === 'epreuves'">
+        <div class="section-header">
+          <h2>Bibliothèque d'Épreuves</h2>
+          <p>Consultez les épreuves publiées par les professeurs</p>
+        </div>
+
+        <div class="search-bar">
+          <span class="material-icons">search</span>
+          <input type="text" class="search-input" placeholder="Rechercher une épreuve..."
+            [(ngModel)]="searchEpreuve" (input)="searchEpreuves()" />
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Matière</th>
+                  <th>Classe</th>
+                  <th>Format</th>
+                  <th>Publié par</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of epreuves">
+                  <td class="text-white">{{ e.titre }}</td>
+                  <td class="text-muted">{{ e.matiere?.nom }}</td>
+                  <td class="text-muted">{{ e.classe?.nom }}</td>
+                  <td>
+                    <span class="badge" [class]="e.format === 'pdf' ? 'sky' : 'green'">
+                      {{ e.format?.toUpperCase() }}
+                    </span>
+                  </td>
+                  <td class="text-muted">{{ e.auteur?.prenom }} {{ e.auteur?.nom }}</td>
+                  <td class="text-muted">{{ e.created_at | date:'dd/MM/yyyy' }}</td>
+                </tr>
+                <tr *ngIf="epreuves.length === 0">
+                  <td colspan="6" class="empty-row">Aucune épreuve disponible</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNONCES -->
+      <section *ngIf="activeSection === 'annonces'">
+        <div class="section-header">
+          <h2>Annonces & Communication</h2>
+          <p>Annonces de l'établissement</p>
+        </div>
+
+        <div class="annonces-list" *ngIf="annonces.length > 0">
+          <div class="annonce-card" *ngFor="let a of annonces">
+            <div class="annonce-header">
+              <h3>{{ a.titre }}</h3>
+              <span class="badge" [class]="a.cible === 'parents' ? 'indigo' : a.cible === 'membres' ? 'sky' : 'green'">
+                {{ a.cible }}
+              </span>
+            </div>
+            <p class="annonce-content">{{ a.contenu }}</p>
+            <p class="annonce-date text-muted">{{ a.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="annonces.length === 0">
+          <span class="material-icons">campaign</span>
+          <p>Aucune annonce disponible</p>
+        </div>
+      </section>
+
+      <!-- CLASSES -->
+      <section *ngIf="activeSection === 'classes'">
+        <div class="section-header">
+          <h2>Classes & Salles</h2>
+          <p>Gérez les classes et salles de l'établissement</p>
+        </div>
+        <div class="empty-state">
+          <span class="material-icons">class</span>
+          <p>Gestion des classes disponible prochainement</p>
+        </div>
+      </section>
+
+      <!-- EMPLOI DU TEMPS -->
+      <section *ngIf="activeSection === 'emploi-temps'">
+        <div class="section-header">
+          <h2>Emploi du Temps</h2>
+          <p>Consultez les emplois du temps par salle</p>
+        </div>
+        <div class="empty-state">
+          <span class="material-icons">schedule</span>
+          <p>Emploi du temps disponible prochainement</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>

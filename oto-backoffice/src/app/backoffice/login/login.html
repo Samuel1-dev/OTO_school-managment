@@ -1,0 +1,89 @@
+<div class="auth-root">
+
+  <div class="glow-sky" style="width:600px;height:600px;top:-200px;left:-200px;"></div>
+  <div class="glow-indigo" style="width:500px;height:500px;bottom:-100px;right:-100px;"></div>
+
+  <header class="auth-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">OTO</span>
+        <span class="logo-text"><span class="sky">SCHOOL</span> BACK OFFICE</span>
+      </div>
+      <button type="button" class="btn-back">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Retour</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+
+      <div class="auth-icon">
+        <mat-icon>admin_panel_settings</mat-icon>
+      </div>
+
+      <div class="auth-title">
+        <h1>Connexion administrateur</h1>
+        <p>Espace réservé à l'équipe OTO School</p>
+      </div>
+
+      <div class="error-box" *ngIf="erreur">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ erreur }}</span>
+      </div>
+
+      <form class="auth-form" (ngSubmit)="onSubmit()">
+
+        <div class="form-group">
+          <label>Adresse e-mail</label>
+          <div class="input-wrapper">
+            <mat-icon class="input-icon">mail_outline</mat-icon>
+            <input
+              class="input-field"
+              type="email"
+              placeholder="admin@backoffice.com"
+              [(ngModel)]="email"
+              name="email"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <div class="input-wrapper">
+            <mat-icon class="input-icon">lock_outline</mat-icon>
+            <input
+              class="input-field"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              [(ngModel)]="motDePasse"
+              name="motDePasse"
+            />
+            <button type="button" class="toggle-password" (click)="togglePassword()">
+              <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="loading"
+        >
+          <span class="spinner" *ngIf="loading"></span>
+          <mat-icon *ngIf="!loading">login</mat-icon>
+          {{ loading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+
+      </form>
+
+      <div class="warning-note">
+        <mat-icon>info_outline</mat-icon>
+        <span>Cet espace est réservé à l'équipe d'administration. Tout accès non autorisé est interdit.</span>
+      </div>
+
+    </div>
+  </main>
+
+</div>
