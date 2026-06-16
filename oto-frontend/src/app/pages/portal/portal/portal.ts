@@ -18,9 +18,6 @@ export class Portal {
     this.router.navigate(['/auth/inscription-ecole']);
   }
 
-  goToInscriptionParent(): void {
-    this.router.navigate(['/auth/inscription-parent']);
-  }
 
   goToParentLogin(): void {
     this.router.navigate(['/auth/login'], { queryParams: { type: 'parent' } });

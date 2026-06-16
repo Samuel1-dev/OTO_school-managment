@@ -1,1 +1,328 @@
-<p>parent works!</p>
+<div class="dashboard-root">
+
+  <app-sidebar
+    [navItems]="navItems"
+    [activeSection]="activeSection"
+    [ecoleNom]="ecoleNom || 'OTO School'"
+    [isOpen]="sidebarOpen"
+    (sectionChange)="activeSection = $event"
+    (closeSidebar)="sidebarOpen = false">
+  </app-sidebar>
+
+  <div class="dashboard-main">
+
+    <app-header
+      [ecoleNom]="ecoleNom || 'OTO School'"
+      [role]="'parent'"
+      [userName]="userName"
+      (toggleSidebar)="sidebarOpen = !sidebarOpen">
+    </app-header>
+
+    <div class="dashboard-content">
+
+      <!-- SUIVI ENFANTS -->
+      <section *ngIf="activeSection === 'suivi'">
+        <div class="section-header">
+          <div>
+            <h2>Suivi de mes Enfants</h2>
+            <p>Suivez la scolarité de vos enfants en temps réel</p>
+          </div>
+          <div class="periode-selector" *ngIf="periodes.length > 0">
+            <label>Période</label>
+            <select class="input-select" [(ngModel)]="selectedPeriode"
+              (change)="changePeriode()">
+              <option *ngFor="let p of periodes" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stats globales -->
+        <div class="stats-grid">
+          <app-stat-card
+            title="Moyenne Générale"
+            [value]="getMoyenne() + ' / 20'"
+            icon="trending_up"
+            color="sky">
+          </app-stat-card>
+          <app-stat-card
+            title="Total Absences"
+            [value]="absenceStats.total_heures + ' Heures'"
+            icon="event_busy"
+            color="orange">
+          </app-stat-card>
+          <app-stat-card
+            title="Non Justifiées"
+            [value]="absenceStats.non_justifiees + 'H'"
+            icon="warning"
+            color="purple">
+          </app-stat-card>
+          <app-stat-card
+            title="Période en Cours"
+            [value]="selectedPeriode || '—'"
+            icon="calendar_today"
+            color="green">
+          </app-stat-card>
+        </div>
+
+        <!-- Liste enfants -->
+        <div class="enfants-section">
+          <p class="enfants-title">
+            MES ENFANTS — CLIQUEZ POUR AFFICHER LES DÉTAILS
+          </p>
+          <div class="enfants-grid">
+            <div class="enfant-card"
+              *ngFor="let e of enfants"
+              [class.active]="enfantActif?.id === e.id"
+              (click)="selectEnfant(e)">
+              <div class="enfant-avatar">
+                {{ e.prenom?.[0] }}{{ e.nom?.[0] }}
+              </div>
+              <div class="enfant-info">
+                <h4>{{ e.prenom }} {{ e.nom }}</h4>
+                <p>Classe :
+                  <span class="sky">{{ e.salle?.nom ?? '—' }}</span>
+                </p>
+                <p class="ecole-name">{{ e.ecole?.nom }}</p>
+              </div>
+              <div class="enfant-matricule">
+                <span class="badge sky">{{ e.matricule }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Détails enfant actif -->
+        <div *ngIf="enfantActif">
+
+          <div class="fiche-header">
+            <span>Fiche de suivi :
+              <strong>{{ enfantActif.prenom }} {{ enfantActif.nom }}</strong>
+            </span>
+            <span class="badge sky">{{ enfantActif.matricule }}</span>
+          </div>
+
+          <!-- Relevé de notes -->
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <span class="material-icons">bookmark</span>
+                Relevé de Notes — {{ enfantActif.prenom }}
+              </h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Matière</th>
+                    <th>Note Obtenue</th>
+                    <th>Type d'Évaluation</th>
+                    <th>Date de publication</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let n of notes">
+                    <td class="text-white">{{ n.matiere }}</td>
+                    <td>
+                      <span class="note-value"
+                        [class]="n.valeur >= 10 ? 'green' : 'red'">
+                        {{ n.valeur }} / {{ n.note_sur }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge sky">
+                        {{ n.methode?.libelle?.toUpperCase() ?? n.methode_id }}
+                      </span>
+                    </td>
+                    <td class="text-muted">
+                      {{ n.publie_at | date:'yyyy-MM-dd' }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="notes.length === 0">
+                    <td colspan="4" class="empty-row">
+                      Aucune note pour cette période
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Absences + Scolarité -->
+          <div class="bottom-grid">
+
+            <!-- Absences -->
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <span class="material-icons">schedule</span>
+                  Contrôle d'Assiduité
+                </h3>
+              </div>
+              <div class="absence-summary">
+                <div class="absence-total">
+                  <p class="label">TOTAL ABSENCES</p>
+                  <p class="value orange">
+                    {{ absenceStats.total_heures }} Heures
+                  </p>
+                  <p class="non-justifiees">
+                    <span class="red">
+                      {{ absenceStats.non_justifiees }}H NON JUSTIFIÉES
+                    </span>
+                  </p>
+                </div>
+                <div class="absence-list">
+                  <div class="absence-item"
+                    *ngFor="let a of absences.slice(0, 5)">
+                    <span class="badge"
+                      [class]="a.justifiee ? 'green' : 'orange'">
+                      {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
+                    </span>
+                    <span class="text-muted">{{ a.date }}</span>
+                    <span>{{ a.duree_heures }}h</span>
+                    <span class="text-muted">
+                      {{ a.motif || 'Sans motif' }}
+                    </span>
+                  </div>
+                  <div class="empty-mini" *ngIf="absences.length === 0">
+                    Aucune absence enregistrée
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scolarité -->
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <span class="material-icons">payments</span>
+                  Suivi Financier & Échéances
+                </h3>
+              </div>
+              <div class="scolarite-list" *ngIf="scolarite">
+                <div class="tranche-item"
+                  *ngFor="let t of scolarite.scolarite">
+                  <div class="tranche-info">
+                    <p class="tranche-label">
+                      Tranche {{ t.tranche?.numero }}
+                    </p>
+                    <p class="tranche-date text-muted">
+                      Date limite : {{ t.tranche?.date_limite }}
+                    </p>
+                  </div>
+                  <div class="tranche-right">
+                    <p class="tranche-montant">
+                      {{ t.tranche?.montant | number }} FCFA
+                    </p>
+                    <span class="badge"
+                      [class]="t.solde ? 'green' : 'red'">
+                      {{ t.solde ? 'Payé / Validé' : 'Non soldé' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="empty-mini"
+                  *ngIf="!scolarite?.scolarite?.length">
+                  Aucune tranche définie
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Aucun enfant -->
+        <div class="empty-state" *ngIf="enfants.length === 0">
+          <span class="material-icons">family_restroom</span>
+          <p>Aucun enfant inscrit trouvé</p>
+          <p class="text-muted" style="font-size:13px">
+            Contactez l'établissement pour vérifier l'inscription
+          </p>
+        </div>
+      </section>
+
+      <!-- ANNONCES & MESSAGES -->
+      <section *ngIf="activeSection === 'annonces'">
+        <div class="section-header">
+          <div>
+            <h2>Annonces & Messages</h2>
+            <p>Communications de l'établissement</p>
+          </div>
+          <div class="notif-badge" *ngIf="nonLus > 0">
+            <span class="material-icons">notifications</span>
+            {{ nonLus }} non lu(s)
+          </div>
+        </div>
+
+        <!-- Annonces -->
+        <div class="comm-section">
+          <div class="comm-title">
+            <span class="material-icons">campaign</span>
+            Annonces de l'établissement
+          </div>
+          <div class="annonces-list" *ngIf="annonces.length > 0">
+            <div class="annonce-card" *ngFor="let a of annonces">
+              <div class="annonce-header">
+                <div class="annonce-icon">
+                  <span class="material-icons">campaign</span>
+                </div>
+                <div style="flex:1">
+                  <h3>{{ a.titre }}</h3>
+                  <p class="text-muted">{{ a.ecole?.nom }}</p>
+                </div>
+                <span class="badge green">{{ a.cible }}</span>
+              </div>
+              <p class="annonce-content">{{ a.contenu }}</p>
+              <p class="annonce-date">
+                {{ a.created_at | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+            </div>
+          </div>
+          <div class="empty-mini" *ngIf="annonces.length === 0">
+            Aucune annonce disponible
+          </div>
+        </div>
+
+        <!-- Messages personnels -->
+        <div class="comm-section">
+          <div class="comm-title">
+            <span class="material-icons">mail</span>
+            Messages de l'école
+            <span class="badge red" *ngIf="nonLus > 0">{{ nonLus }}</span>
+          </div>
+          <div class="messages-list" *ngIf="messages.length > 0">
+            <div class="message-card"
+              *ngFor="let m of messages"
+              [class.unread]="!m.lu">
+              <div class="message-header">
+                <div class="message-sender">
+                  <div class="sender-avatar">
+                    {{ m.expediteur?.prenom?.[0] }}{{ m.expediteur?.nom?.[0] }}
+                  </div>
+                  <div>
+                    <p class="sender-name">
+                      {{ m.expediteur?.prenom }} {{ m.expediteur?.nom }}
+                    </p>
+                    <p class="sender-role text-muted">
+                      {{ m.expediteur?.role }}
+                    </p>
+                  </div>
+                </div>
+                <div class="message-meta">
+                  <span class="badge red" *ngIf="!m.lu">Nouveau</span>
+                  <p class="message-date text-muted">
+                    {{ m.created_at | date:'dd/MM/yyyy HH:mm' }}
+                  </p>
+                </div>
+              </div>
+              <p class="message-sujet">{{ m.sujet }}</p>
+              <p class="message-contenu">{{ m.contenu }}</p>
+            </div>
+          </div>
+          <div class="empty-mini" *ngIf="messages.length === 0">
+            Aucun message reçu
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>

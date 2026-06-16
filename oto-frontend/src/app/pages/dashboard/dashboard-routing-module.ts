@@ -6,6 +6,7 @@ import { Admin } from './admin/admin';
 import { Professeur } from './professeur/professeur';
 import { Secretaire } from './secretaire/secretaire';
 import { Superviseur } from './superviseur/superviseur';
+import { AuthGuard } from '../../guards/auth-guard';
 
 
 const routes: Routes = [
@@ -44,6 +45,13 @@ const routes: Routes = [
     redirectTo: 'admin',
     pathMatch: 'full',
   },
+
+  {
+  path: 'autre',
+  loadChildren: () =>
+    import('./autre/autre-module').then((m) => m.AutreModule),
+  canActivate: [AuthGuard],
+},
 ];
 
 @NgModule({

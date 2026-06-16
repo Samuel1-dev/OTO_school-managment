@@ -1,0 +1,91 @@
+@startuml sequence_authentification
+title Diagramme de Séquence — Authentification
+
+actor Utilisateur as U
+participant "Login\n(Angular)" as Login
+participant "AuthService\n(Angular)" as AuthSvc
+participant "AuthInterceptor" as Interceptor
+participant "AuthController\n(NestJS)" as AuthCtrl
+participant "AuthService\n(NestJS)" as AuthBk
+database "PostgreSQL" as DB
+
+== Connexion ==
+
+U -> Login : Saisit email + mot de passe
+Login -> AuthSvc : login(email, mot_de_passe)
+AuthSvc -> AuthCtrl : POST /auth/login\n{email, mot_de_passe}
+AuthCtrl -> AuthBk : login(email, mot_de_passe)
+AuthBk -> DB : SELECT user WHERE email = ?
+DB --> AuthBk : User
+AuthBk -> AuthBk : bcrypt.compare(mdp, hash)
+
+alt Identifiants incorrects
+  AuthBk --> AuthCtrl : UnauthorizedException
+  AuthCtrl --> AuthSvc : 401 Unauthorized
+  AuthSvc --> Login : error
+  Login --> U : "Identifiants incorrects"
+else Identifiants corrects
+  AuthBk -> AuthBk : jwtService.sign(payload)
+  AuthBk --> AuthCtrl : {access_token, role,\nmot_de_passe_change, permissions}
+  AuthCtrl --> AuthSvc : 200 OK
+  AuthSvc -> AuthSvc : localStorage.setItem\n(token, role, permissions)
+
+  alt mot_de_passe_change = false
+    AuthSvc -> Login : navigate('/auth/changer-mot-de-passe')
+    Login --> U : Formulaire changement mot de passe
+
+    == Changement mot de passe ==
+    U -> Login : Saisit ancien + nouveau mot de passe
+    Login -> AuthSvc : changerMotDePasse(ancien, nouveau)
+    AuthSvc -> Interceptor : POST /auth/changer-mot-de-passe\n+ Bearer token
+    Interceptor -> Interceptor : Injecte Authorization header
+    Interceptor -> AuthCtrl : POST /auth/changer-mot-de-passe
+    AuthCtrl -> AuthBk : changerMotDePasse(userId, ancien, nouveau)
+    AuthBk -> DB : SELECT user/parent WHERE id = ?
+    DB --> AuthBk : User/Parent
+    AuthBk -> AuthBk : bcrypt.compare(ancien, hash)
+    AuthBk -> AuthBk : bcrypt.hash(nouveau)
+    AuthBk -> DB : UPDATE mot_de_passe,\nmot_de_passe_change = true
+    DB --> AuthBk : OK
+    AuthBk --> AuthCtrl : {message: 'Mot de passe changé'}
+    AuthCtrl --> AuthSvc : 200 OK
+    AuthSvc -> AuthSvc : navigate('/dashboard/{role}')
+    AuthSvc --> U : Redirigé vers dashboard
+
+  else mot_de_passe_change = true
+    AuthSvc -> Login : navigate('/dashboard/{role}')
+    Login --> U : Dashboard selon rôle
+  end
+end
+
+== Requêtes authentifiées ==
+
+U -> Login : Action (ex: charger données)
+Login -> AuthSvc : appel service
+AuthSvc -> Interceptor : requête HTTP
+Interceptor -> Interceptor : localStorage.getItem('access_token')
+Interceptor -> AuthCtrl : Requête + Bearer token
+AuthCtrl -> AuthBk : JwtAuthGuard.validate(token)
+AuthBk -> AuthBk : jwtService.verify(token)
+
+alt Token invalide/expiré
+  AuthBk --> AuthCtrl : UnauthorizedException
+  AuthCtrl --> Interceptor : 401 Unauthorized
+  Interceptor -> Interceptor : localStorage.clear()
+  Interceptor -> Login : navigate('/auth/login')
+  Login --> U : Page de connexion
+else Token valide
+  AuthCtrl --> AuthSvc : Données demandées
+  AuthSvc --> Login : Données
+  Login --> U : Affichage des données
+end
+
+== Déconnexion ==
+
+U -> Login : Clic sur "Se déconnecter"
+Login -> AuthSvc : logout()
+AuthSvc -> AuthSvc : localStorage.clear()
+AuthSvc -> Login : navigate('/auth/login')
+Login --> U : Page de connexion
+
+@enduml

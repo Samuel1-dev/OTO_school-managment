@@ -48,4 +48,21 @@ export class SalleService {
       `${this.apiUrl}/salles/classes/${classe_id}/methodes`
     );
   }
+
+  affecterProfesseur(salle_id: string, data: { user_id: string; matiere: string; coefficient: number }): Observable<any> {
+  return this.http.post(`${this.apiUrl}/salles/${salle_id}/professeurs`, data);
+}
+
+retirerProfesseur(salle_id: string, user_id: string): Observable<any> {
+  return this.http.delete(`${this.apiUrl}/salles/${salle_id}/professeurs/${user_id}`);
+}
+
+getProfesseursBySalle(salle_id: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/salles/${salle_id}/professeurs`);
+}
+
+getMesSalles(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/salles/mes-salles/prof`);
+}
+
 }

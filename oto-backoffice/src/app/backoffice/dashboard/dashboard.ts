@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Subject, forkJoin, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil, interval, startWith, switchMap, Subscription } from 'rxjs';
 import { EcoleService, EcoleResponse } from '../../service/ecole.service';
 import { AuthService } from '../../service/auth.service';
 
@@ -34,26 +34,63 @@ export class Dashboard implements OnInit, OnDestroy {
   toast: { message: string; type: 'success' | 'error' } | null = null;
 
   private destroy$ = new Subject<void>();
+  private pollingSubscription!: Subscription; 
 
   constructor(
     private ecoleService: EcoleService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef // Injecté pour forcer le rafraîchissement asynchrone
+    private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit(): void {
-    this.chargerToutesLesDonnees();
+    this.pollingSubscription = interval(15000)
+      .pipe(
+        startWith(0),
+        takeUntil(this.destroy$),
+        switchMap(() => {
+          // On n'active le spinner de chargement initial que si la liste est vide
+          if (this.ecoles.length === 0) {
+            this.loadingEcoles = true;
+          }
+          return forkJoin({
+            toutes: this.ecoleService.getAllEcoles(),
+            enAttente: this.ecoleService.getEcolesPending()
+          });
+        })
+      )
+      .subscribe({
+        next: (resultats) => {
+          const nouvellesEcoles = resultats.toutes.ecoles || resultats.toutes;
+          const nouvellesEcolesPending = resultats.enAttente.ecoles || resultats.enAttente;
+
+          if (
+            JSON.stringify(this.ecoles) !== JSON.stringify(nouvellesEcoles) ||
+            JSON.stringify(this.ecolesPending) !== JSON.stringify(nouvellesEcolesPending)
+          ) {
+            this.ecoles = nouvellesEcoles;
+            this.ecolesPending = nouvellesEcolesPending;
+
+            // Tri automatique des écoles validées et rejetées
+            this.categoriserEcoles();
+          }
+
+          this.loadingEcoles = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.loadingEcoles = false;
+          console.error('Erreur lors du rafraîchissement automatique de l\'API:', err);
+          this.erreurEcoles = 'Impossible de charger ou de synchroniser les données du tableau de bord.';
+          this.cdr.detectChanges();
+        }
+      });
   }
 
-  /**
-   * Charge simultanément toutes les écoles et les demandes en attente
-   * pour éviter les décalages d'affichage et le chargement infini.
-   */
+  
   chargerToutesLesDonnees(): void {
     this.loadingEcoles = true;
     this.erreurEcoles = '';
 
-    // forkJoin attend la réponse complète des deux endpoints de l'API
     forkJoin({
       toutes: this.ecoleService.getAllEcoles(),
       enAttente: this.ecoleService.getEcolesPending()
@@ -61,32 +98,25 @@ export class Dashboard implements OnInit, OnDestroy {
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (resultats) => {
-        // Enregistrement des listes en mémoire
         this.ecoles = resultats.toutes.ecoles || resultats.toutes;
         this.ecolesPending = resultats.enAttente.ecoles || resultats.enAttente;
 
-        // Tri automatique des écoles validées et rejetées
         this.categoriserEcoles();
 
-        // On s'assure que le filtre est bien positionné globalement et on coupe le spinner
         this.filtreActif = 'toutes';
         this.loadingEcoles = false;
-
-        // On force Angular à inspecter le changement de données immédiat
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.loadingEcoles = false;
-        console.error('Erreur lors du chargement des données de l\'API:', err);
-        this.erreurEcoles = 'Impossible de charger les données du tableau de bord.';
+        console.error('Erreur lors du chargement manuel des données:', err);
+        this.erreurEcoles = 'Impossible de rafraîchir les données.';
         this.cdr.detectChanges();
       }
     });
   }
 
-  /**
-   * Sépare les écoles de la liste générale selon leur statut
-   */
+
   private categoriserEcoles(): void {
     this.ecoleValidees = this.ecoles.filter(e => {
       const s = (e.status || (e as any).statut || '').toUpperCase();
@@ -99,9 +129,7 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Retourne la bonne liste d'écoles à itérer dans le tableau HTML
-   */
+  
   getEcolesAffichees(): EcoleResponse[] {
     if (!this.ecoles || this.ecoles.length === 0) {
       if (this.filtreActif === 'en_attente') return this.ecolesPending || [];
@@ -126,9 +154,7 @@ export class Dashboard implements OnInit, OnDestroy {
   get countValidees(): number { return this.ecoleValidees.length; }
   get countRejetees(): number { return this.ecoleRejetees.length; }
 
-  /**
-   * Action : Valider un établissement
-   */
+  
   valider(ecole: EcoleResponse): void {
     if (!ecole) return;
     if (!confirm(`Êtes-vous sûr de vouloir valider "${ecole.nom}" ?`)) return;
@@ -141,7 +167,7 @@ export class Dashboard implements OnInit, OnDestroy {
           this.actionLoading = false;
           this.afficherToast(`École "${ecole.nom}" validée avec succès.`, 'success');
           this.fermerDetail();
-          this.chargerToutesLesDonnees(); // Recharge la grille proprement
+          this.chargerToutesLesDonnees(); // Recharge la grille proprement après action
         },
         error: (err) => {
           this.actionLoading = false;
@@ -150,7 +176,6 @@ export class Dashboard implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Gestion de la Modal Détails ──────────────────────────────────────────
   ouvrirDetail(ecole: EcoleResponse): void {
     this.ecoleDetail = ecole;
     this.showDetailModal = true;
@@ -161,7 +186,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.ecoleDetail = null;
   }
 
-  // ─── Gestion de la Modal de Rejet ─────────────────────────────────────────
   ouvrirRejet(ecole: EcoleResponse): void {
     this.ecoleSelectionnee = ecole;
     this.showRejetModal = true;
@@ -194,7 +218,6 @@ export class Dashboard implements OnInit, OnDestroy {
       });
   }
 
-  // ─── Utilitaires complémentaires ──────────────────────────────────────────
   private afficherToast(message: string, type: 'success' | 'error'): void {
     this.toast = { message, type };
     setTimeout(() => { this.toast = null; }, 3000);

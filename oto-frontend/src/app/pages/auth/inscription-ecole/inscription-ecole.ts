@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 
@@ -39,6 +39,7 @@ export class InscriptionEcole {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   nextStep(): void {
@@ -108,10 +109,12 @@ export class InscriptionEcole {
       next: () => {
         this.isLoading = false;
         this.currentStep = 3;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.error?.message || 'Une erreur est survenue';
+        this.cdr.detectChanges();
       },
     });
   }

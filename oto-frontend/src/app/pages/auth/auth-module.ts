@@ -7,7 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthRoutingModule } from './auth-routing-module';
 import { Login } from './login/login';
 import { InscriptionEcole } from './inscription-ecole/inscription-ecole';
-import { InscriptionParent } from './inscription-parent/inscription-parent';
 import { ChangerMotDePasse } from './changer-mot-de-passe/changer-mot-de-passe';
 import { SharedModule } from '../../shared/shared-module';
 
@@ -15,7 +14,6 @@ import { SharedModule } from '../../shared/shared-module';
   declarations: [
     Login,
     InscriptionEcole,
-    InscriptionParent,
     ChangerMotDePasse,
   ],
   imports: [

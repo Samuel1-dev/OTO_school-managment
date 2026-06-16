@@ -31,45 +31,58 @@ export class AuthService {
   }
 
   // Connexion personnel école
-  login(email: string, mot_de_passe: string): Observable<LoginResponse> {
-    return this.http
-      .post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, mot_de_passe })
-      .pipe(
-        tap((response) => {
-          localStorage.setItem('access_token', response.access_token);
-          localStorage.setItem('role', response.role);
-          this.currentUserSubject.next(response);
+  login(email: string, mot_de_passe: string): Observable<any> {
+  return this.http
+    .post<any>(`${this.apiUrl}/auth/login`, { email, mot_de_passe })
+    .pipe(
+      tap((response) => {
+        localStorage.setItem('access_token', response.access_token);
+        localStorage.setItem('role', response.role);
+        localStorage.setItem('mot_de_passe_change', response.mot_de_passe_change);
+        localStorage.setItem('user_nom', `${response.prenom} ${response.nom}`);
+        // Stocker les permissions si rôle personnalisé
+        if (response.permissions && response.permissions.length > 0) {
+          localStorage.setItem('permissions', JSON.stringify(response.permissions));
+        }
+        this.currentUserSubject.next({ role: response.role });
 
-          if (!response.mot_de_passe_change) {
-            this.router.navigate(['/auth/changer-mot-de-passe']);
-          } else {
-            this.router.navigate(['/dashboard/' + response.role]);
-          }
-        })
-      );
-  }
+        if (!response.mot_de_passe_change) {
+          this.router.navigate(['/auth/changer-mot-de-passe']);
+        } else {
+          this.router.navigate([`/dashboard/${response.role}`]);
+        }
+      }),
+    );
+}
 
   // Connexion parent
-  loginParent(email: string, mot_de_passe: string): Observable<ParentLoginResponse> {
-    return this.http
-      .post<ParentLoginResponse>(`${this.apiUrl}/parents/login`, { email, mot_de_passe })
-      .pipe(
-        tap((response) => {
-          localStorage.setItem('access_token', response.access_token);
-          localStorage.setItem('role', 'parent');
-          localStorage.setItem('parent_id', response.parent.id);
-          localStorage.setItem('parent_nom', `${response.parent.nom} ${response.parent.prenom}`);
-          this.currentUserSubject.next({ role: 'parent', parent: response.parent });
+ loginParent(email: string, mot_de_passe: string): Observable<ParentLoginResponse> {
+  return this.http
+    .post<ParentLoginResponse>(`${this.apiUrl}/parents/login`, { email, mot_de_passe })
+    .pipe(
+      tap((response) => {
+        localStorage.setItem('access_token', response.access_token);
+        localStorage.setItem('role', 'parent');
+        localStorage.setItem('parent_id', response.parent.id);
+        localStorage.setItem(
+          'parent_nom',
+          `${response.parent.nom} ${response.parent.prenom}`,
+        );
+        this.currentUserSubject.next({ role: 'parent', parent: response.parent });
+
+        if (!response.mot_de_passe_change) {
+          this.router.navigate(['/auth/changer-mot-de-passe']);
+        } else {
           this.router.navigate(['/dashboard/parent']);
-        })
-      );
-  }
+        }
+      }),
+    );
+}
 
   // Inscription école
-  inscrireEcole(payload: InscriptionEcolePayload): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/inscription-ecole`, payload);
-  }
-
+inscrireEcole(payload: InscriptionEcolePayload): Observable<any> {
+  return this.http.post(`${this.apiUrl}/auth/inscription-ecole`, payload);
+}
   // Inscription parent
   inscrireParent(payload: InscriptionParentPayload): Observable<any> {
     return this.http.post(`${this.apiUrl}/parents/inscription`, payload);
@@ -82,35 +95,12 @@ export class AuthService {
       nouveau_mot_de_passe: nouveau,
     });
   }
-
-  // Connexion back office
-  loginBackoffice(email: string, mot_de_passe: string): Observable<LoginResponse> {
-    return this.http
-      .post<LoginResponse>(`${this.apiUrl}/backoffice/login`, { email, mot_de_passe })
-      .pipe(
-        tap((response) => {
-          localStorage.setItem('access_token', response.access_token);
-          localStorage.setItem('role', 'backoffice_admin');
-          this.currentUserSubject.next(response);
-          this.router.navigate(['/dashboard/backoffice']);
-        })
-      );
-  }
-
-  // Créer compte back office
-  creerAdminBackoffice(nom: string, email: string, mot_de_passe: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/backoffice/creer-admin`, {
-      nom,
-      email,
-      mot_de_passe,
-    });
-  }
-
+  
   // Déconnexion
   logout(): void {
     localStorage.clear();
     this.currentUserSubject.next(null);
-    this.router.navigate(['/']);
+    this.router.navigate(['/portal']);
   }
 
   // Utilitaires

@@ -1,0 +1,276 @@
+@startuml diagramme_classes
+title Diagramme de Classes — OTO School
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+
+class Ecole {
+  +id: UUID
+  +nom: String
+  +ville: String
+  +boite_postale: String
+  +nom_fondateur: String
+  +email: String
+  +telephone: String
+  +description: String
+  +statut: StatutEcole
+  +created_at: Date
+}
+
+enum StatutEcole {
+  EN_ATTENTE
+  VALIDEE
+  REJETEE
+}
+
+class User {
+  +id: UUID
+  +nom: String
+  +prenom: String
+  +email: String
+  +mot_de_passe: String
+  +identifiant: String
+  +role: RoleUser
+  +type_superviseur: String
+  +telephone: String
+  +actif: Boolean
+  +mot_de_passe_change: Boolean
+  +ecole_id: UUID
+  +role_personnalise_id: UUID
+  +created_at: Date
+}
+
+enum RoleUser {
+  ADMIN
+  PROFESSEUR
+  SECRETAIRE
+  SUPERVISEUR
+  AUTRE
+}
+
+class Parent {
+  +id: UUID
+  +nom: String
+  +prenom: String
+  +email: String
+  +mot_de_passe: String
+  +telephone: String
+  +profession: String
+  +actif: Boolean
+  +mot_de_passe_change: Boolean
+  +created_at: Date
+}
+
+class BackofficeAdmin {
+  +id: UUID
+  +email: String
+  +mot_de_passe: String
+  +created_at: Date
+}
+
+class Classe {
+  +id: UUID
+  +nom: String
+  +scolarite_totale: Number
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class TranchClasse {
+  +id: UUID
+  +numero: Number
+  +montant: Number
+  +date_limite: Date
+  +classe_id: UUID
+}
+
+class Salle {
+  +id: UUID
+  +nom: String
+  +annee_academique: String
+  +effectif_max: Number
+  +classe_id: UUID
+  +ecole_id: UUID
+  +prof_principal_id: UUID
+  +created_at: Date
+}
+
+class SalleProfesseur {
+  +id: UUID
+  +salle_id: UUID
+  +user_id: UUID
+  +matiere: String
+  +coefficient: Number
+}
+
+class Eleve {
+  +id: UUID
+  +nom: String
+  +prenom: String
+  +sexe: SexeEleve
+  +matricule: String
+  +npi: String
+  +date_naissance: Date
+  +lieu_naissance: String
+  +quartier: String
+  +nom_parent: String
+  +contact_parent: String
+  +email_parent: String
+  +profession_parent: String
+  +actif: Boolean
+  +salle_id: UUID
+  +ecole_id: UUID
+  +parent_id: UUID
+  +created_at: Date
+}
+
+enum SexeEleve {
+  MASCULIN
+  FEMININ
+}
+
+class Matiere {
+  +id: UUID
+  +nom: String
+  +ecole_id: UUID
+  +professeur_id: UUID
+  +created_at: Date
+}
+
+class Note {
+  +id: UUID
+  +valeur: Number
+  +note_sur: Number
+  +matiere: String
+  +trimestre: String
+  +methode_id: String
+  +eleve_id: UUID
+  +salle_id: UUID
+  +prof_id: UUID
+  +ecole_id: UUID
+  +publie_at: Date
+}
+
+class Absence {
+  +id: UUID
+  +date: Date
+  +duree_heures: Number
+  +motif: String
+  +justifiee: Boolean
+  +eleve_id: UUID
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class Paiement {
+  +id: UUID
+  +montant: Number
+  +date_paiement: Date
+  +eleve_id: UUID
+  +tranche_id: UUID
+  +ecole_id: UUID
+  +solde: Boolean
+}
+
+class Epreuve {
+  +id: UUID
+  +titre: String
+  +description: String
+  +format: String
+  +fichier_url: String
+  +matiere_id: UUID
+  +auteur_id: UUID
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class Annonce {
+  +id: UUID
+  +titre: String
+  +contenu: String
+  +cible: String
+  +ecole_id: UUID
+  +auteur_id: UUID
+  +created_at: Date
+}
+
+class EmploiTemps {
+  +id: UUID
+  +fichier_pdf_url: String
+  +annee_academique: String
+  +salle_id: UUID
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class ConfigAcademique {
+  +id: UUID
+  +type_periode: String
+  +nombre_periodes: Number
+  +nombre_interrogations: Number
+  +nombre_devoirs: Number
+  +ecole_id: UUID
+  +updated_at: Date
+}
+
+class Message {
+  +id: UUID
+  +sujet: String
+  +contenu: String
+  +lu: Boolean
+  +expediteur_id: UUID
+  +parent_id: UUID
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class RolePersonnalise {
+  +id: UUID
+  +titre: String
+  +ecole_id: UUID
+  +created_at: Date
+}
+
+class RolePermission {
+  +id: UUID
+  +action: String
+  +role_id: UUID
+}
+
+' Relations
+Ecole "1" -- "0..*" User : emploie
+Ecole "1" -- "0..*" Classe : possède
+Ecole "1" -- "0..*" Eleve : inscrit
+Ecole "1" -- "1" ConfigAcademique : configure
+Ecole "1" -- "0..*" RolePersonnalise : définit
+Ecole ..> StatutEcole
+
+User "1" -- "0..*" Note : saisit
+User "1" -- "0..*" Epreuve : publie
+User "1" -- "0..*" Annonce : publie
+User "1" -- "0..*" Message : envoie
+User ..> RoleUser
+User "0..1" -- "1" RolePersonnalise : a
+
+Classe "1" -- "0..*" Salle : contient
+Classe "1" -- "0..*" TranchClasse : définit
+
+Salle "1" -- "0..*" Eleve : accueille
+Salle "1" -- "0..*" SalleProfesseur : affecte
+Salle "1" -- "0..*" Note : reçoit
+Salle "1" -- "0..*" EmploiTemps : planifie
+
+Eleve "1" -- "0..*" Note : obtient
+Eleve "1" -- "0..*" Absence : génère
+Eleve "1" -- "0..*" Paiement : effectue
+Eleve "0..*" -- "0..1" Parent : rattaché à
+
+Parent "1" -- "0..*" Message : reçoit
+
+Matiere "0..*" -- "1" User : enseignée par
+
+TranchClasse "1" -- "0..*" Paiement : soldée par
+
+RolePersonnalise "1" -- "0..*" RolePermission : contient
+
+@enduml

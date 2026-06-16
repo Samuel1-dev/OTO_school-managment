@@ -1,0 +1,115 @@
+@startuml sequence_inscription_eleve
+title Diagramme de Séquence — Inscription Élève
+
+actor Secrétaire as S
+actor Parent as P
+participant "Dashboard\nSecrétaire\n(Angular)" as DashSec
+participant "EleveService\n(Angular)" as EleveSvc
+participant "EleveController\n(NestJS)" as EleveCtrl
+participant "EleveService\n(NestJS)" as EleveBk
+participant "MailerService" as Mailer
+database "PostgreSQL" as DB
+
+== Chargement du formulaire ==
+
+S -> DashSec : Clique "Inscrire un élève"
+DashSec --> S : Modal formulaire
+DashSec -> DashSec : Charge liste classes
+DashSec -> DashSec : Charge liste salles
+
+S -> DashSec : Sélectionne une classe
+DashSec --> S : Filtre les salles\nde cette classe
+S -> DashSec : Sélectionne une salle
+
+== Saisie et soumission ==
+
+S -> DashSec : Remplit informations élève\n(nom, prénom, sexe, date naissance,\nlieu naissance, quartier, NPI)
+S -> DashSec : Remplit informations parent\n(nom, contact, email, profession)
+S -> DashSec : Clique "Inscrire l'élève"
+
+DashSec -> DashSec : Validation des champs\nobligatoires
+
+alt Champs manquants
+  DashSec --> S : "Veuillez remplir tous\nles champs obligatoires"
+else Tous les champs remplis
+  DashSec -> EleveSvc : createEleve({...eleveForm})
+  EleveSvc -> EleveCtrl : POST /eleves\n{données élève + parent}
+
+  == Traitement Backend ==
+
+  EleveCtrl -> EleveBk : inscrireEleve(dto, ecole_id)
+
+  EleveBk -> DB : SELECT salle WHERE id = salle_id
+  DB --> EleveBk : Salle
+
+  alt Salle non trouvée
+    EleveBk --> EleveCtrl : NotFoundException
+    EleveCtrl --> EleveSvc : 404 Not Found
+    EleveSvc --> DashSec : Erreur
+    DashSec --> S : "Salle non trouvée"
+  else Salle trouvée
+    EleveBk -> DB : COUNT eleves WHERE salle_id\n(vérif effectif max)
+    DB --> EleveBk : Nombre élèves
+
+    alt Effectif maximum atteint
+      EleveBk --> EleveCtrl : BadRequestException
+      EleveCtrl --> EleveSvc : 400 Bad Request
+      EleveSvc --> DashSec : Erreur
+      DashSec --> S : "Effectif maximum atteint"
+    else Effectif OK
+      == Création compte Parent ==
+
+      alt Email parent fourni
+        EleveBk -> DB : SELECT parent\nWHERE email = email_parent
+        DB --> EleveBk : Parent existant ou null
+
+        alt Parent n'existe pas encore
+          EleveBk -> EleveBk : bcrypt.hash('0000')
+          EleveBk -> DB : INSERT INTO parents\n{nom, prenom, email,\nmot_de_passe=hash,\nmot_de_passe_change=false}
+          DB --> EleveBk : Parent créé (id)
+
+          EleveBk -> Mailer : sendMail({to: email_parent,\nsubject: 'Accès OTO School',\nbody: identifiants})
+          Mailer --> P : Email avec\nemail + mot de passe 
+        else Parent existe déjà
+          EleveBk -> EleveBk : Utilise parent existant
+        end
+
+        EleveBk -> EleveBk : parent_id = parent.id
+      end
+
+      == Création Élève ==
+
+      EleveBk -> EleveBk : genererMatricule()\n→ ELV-2026-XXXX
+      EleveBk -> DB : INSERT INTO eleves\n{...dto, matricule,\necole_id, parent_id}
+      DB --> EleveBk : Élève créé
+
+      EleveBk -> DB : SELECT eleve\nWHERE id = eleve.id\n(avec relations salle, parent)
+      DB --> EleveBk : Élève complet
+
+      EleveBk --> EleveCtrl : 201 Élève créé
+      EleveCtrl --> EleveSvc : {matricule, nom, prenom, salle, ...}
+      EleveSvc --> DashSec : Succès
+
+      DashSec -> DashSec : showAddEleve = false
+      DashSec -> EleveSvc : listEleves() — rechargement
+      EleveSvc -> EleveCtrl : GET /eleves
+      EleveCtrl --> EleveSvc : Liste élèves mise à jour
+      EleveSvc --> DashSec : Nouvelle liste
+      DashSec --> S : "Élève inscrit !\nMatricule: ELV-2026-XXXX"
+      DashSec --> S : Tableau mis à jour
+    end
+  end
+end
+
+== Première connexion Parent ==
+
+P -> P : Reçoit l'email\navec identifiants
+P -> P : Va sur /auth/login\n(espace parent)
+P -> P : Se connecte avec\nemail + "0000"
+P -> P : mot_de_passe_change = false
+P -> P : Redirigé vers\n/auth/changer-mot-de-passe
+P -> P : Change son mot de passe
+P -> P : Redirigé vers\n/dashboard/parent
+P -> P : Voit son enfant\navec notes, absences, scolarité
+
+@enduml

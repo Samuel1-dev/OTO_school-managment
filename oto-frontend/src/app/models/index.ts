@@ -35,6 +35,7 @@ export interface InscriptionParentPayload {
 
 export interface ParentLoginResponse {
   access_token: string;
+  mot_de_passe_change: boolean;
   parent: {
     id: string;
     nom: string;
@@ -263,7 +264,6 @@ export interface EpreuveSaisie {
   titre: string;
   matiere_id: string;
   classe_id: string;
-  salle_id: string;
   fichier_url: string;
   format: 'pdf' | 'image';
   description?: string;

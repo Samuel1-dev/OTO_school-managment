@@ -16,7 +16,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(
     request: HttpRequest<unknown>,
-    next: HttpHandler
+    next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
     const token = localStorage.getItem('access_token');
 
@@ -30,12 +30,22 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 401) {
-          localStorage.clear();
-          this.router.navigate(['/auth/login']);
+        if (error.status === 401 && token) {
+          const url = request.url;
+          const isPublicRoute =
+            url.includes('/auth/login') ||
+            url.includes('/parents/login') ||
+            url.includes('/auth/inscription') ||
+            url.includes('/parents/inscription') ||
+            url.includes('/backoffice/login');
+
+          if (!isPublicRoute) {
+            localStorage.clear();
+            this.router.navigate(['/auth/login']);
+          }
         }
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

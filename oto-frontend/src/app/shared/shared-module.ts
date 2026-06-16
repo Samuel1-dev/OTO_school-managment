@@ -24,6 +24,9 @@ import { UtilService } from './utils/util.service';
 import { Sidebar } from './components/sidebar/sidebar';
 import { Header } from './components/header/header';
 import { StatCard } from './components/stat-card/stat-card';
+import { ConfigAcademiqueService } from '../services/config-academique';
+import { MessageService } from '../services/message';
+import { RolePersonnaliseService } from '../services/role-personnalise';
 
 @NgModule({
   declarations: [
@@ -53,6 +56,9 @@ import { StatCard } from './components/stat-card/stat-card';
     AnnonceService,
     EmploiTempsService,
     UtilService,
+    ConfigAcademiqueService,
+    MessageService,
+    RolePersonnaliseService,
   ],
   exports: [
     CommonModule,

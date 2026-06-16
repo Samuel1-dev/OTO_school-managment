@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Matiere } from '../models/index';
 
 @Injectable({
   providedIn: 'root',
@@ -11,15 +10,23 @@ export class MatiereService {
 
   constructor(private http: HttpClient) {}
 
-  createMatiere(nom: string): Observable<Matiere> {
-    return this.http.post<Matiere>(`${this.apiUrl}/matieres`, { nom });
+  listMatieres(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/matieres`);
   }
 
-  listMatieres(): Observable<Matiere[]> {
-    return this.http.get<Matiere[]>(`${this.apiUrl}/matieres`);
+  creerMatiere(nom: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/matieres`, { nom });
   }
 
-  deleteMatiere(id: string): Observable<any> {
+  supprimerMatiere(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/matieres/${id}`);
+  }
+
+  getMesMatieres(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/matieres/prof/mes-matieres`);
+  }
+
+  getMatieresByProf(user_id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/matieres/prof/${user_id}`);
   }
 }

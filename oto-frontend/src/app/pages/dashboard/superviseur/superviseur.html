@@ -28,8 +28,10 @@
       <!-- VUE GENERALE -->
       <section *ngIf="activeSection === 'vue-generale'">
         <div class="section-header">
-          <h2>Vue Générale</h2>
-          <p>Tableau de bord de l'établissement</p>
+          <div>
+            <h2>Vue Générale</h2>
+            <p>Tableau de bord de l'établissement</p>
+          </div>
         </div>
 
         <div class="stats-grid">
@@ -37,17 +39,19 @@
             icon="groups" color="sky"></app-stat-card>
           <app-stat-card title="Professeurs" [value]="stats.professeurs"
             icon="school" color="green"></app-stat-card>
-          <app-stat-card title="Absences enregistrées" [value]="absences.length"
+          <app-stat-card title="Absences" [value]="absences.length"
             icon="event_busy" color="orange"></app-stat-card>
-          <app-stat-card title="Superviseurs" [value]="stats.superviseurs"
-            icon="supervisor_account" color="purple"></app-stat-card>
+          <app-stat-card title="Classes" [value]="classes.length"
+            icon="class" color="purple"></app-stat-card>
         </div>
 
-        <!-- Absences récentes -->
-        <div class="card mt-24">
+        <div class="card">
           <div class="card-header">
             <h3>Absences récentes</h3>
-            <button class="btn-sm sky" (click)="activeSection = 'absences'">Voir tout</button>
+            <button class="btn-sm sky"
+              (click)="activeSection = 'absences'">
+              Voir tout
+            </button>
           </div>
           <div class="table-wrapper">
             <table class="data-table">
@@ -62,18 +66,21 @@
               </thead>
               <tbody>
                 <tr *ngFor="let a of absences.slice(0, 5)">
-                  <td class="text-white">{{ a.eleve?.nom }} {{ a.eleve?.prenom }}</td>
+                  <td class="text-white">
+                    {{ a.eleve?.nom }} {{ a.eleve?.prenom }}
+                  </td>
                   <td class="text-muted">{{ a.date }}</td>
                   <td>{{ a.duree_heures }}h</td>
                   <td class="text-muted">{{ a.motif || 'Sans motif' }}</td>
                   <td>
-                    <span class="badge" [class]="a.justifiee ? 'green' : 'orange'">
+                    <span class="badge"
+                      [class]="a.justifiee ? 'green' : 'orange'">
                       {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
                     </span>
                   </td>
                 </tr>
                 <tr *ngIf="absences.length === 0">
-                  <td colspan="5" class="empty-row">Aucune absence enregistrée</td>
+                  <td colspan="5" class="empty-row">Aucune absence</td>
                 </tr>
               </tbody>
             </table>
@@ -94,6 +101,77 @@
           </button>
         </div>
 
+        <!-- Modal absence -->
+        <div class="modal-overlay" *ngIf="showAddAbsence"
+          (click)="showAddAbsence = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Enregistrer une absence</h3>
+              <button class="modal-close" (click)="showAddAbsence = false">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="error-box" *ngIf="formError">
+              <span class="material-icons">error_outline</span>
+              {{ formError }}
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Élève *</label>
+                <select class="input-field"
+                  [(ngModel)]="absenceForm.eleve_id">
+                  <option value="">Sélectionner un élève</option>
+                  <option *ngFor="let e of eleves" [value]="e.id">
+                    {{ e.prenom }} {{ e.nom }} — {{ e.salle?.nom }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Date *</label>
+                <input type="date" class="input-field"
+                  [(ngModel)]="absenceForm.date" />
+              </div>
+              <div class="form-group">
+                <label>Durée (heures) *</label>
+                <input type="number" class="input-field"
+                  min="1" max="8"
+                  [(ngModel)]="absenceForm.duree_heures" />
+              </div>
+              <div class="form-group">
+                <label>Justifiée</label>
+                <select class="input-field"
+                  [(ngModel)]="absenceForm.justifiee">
+                  <option [ngValue]="false">Non justifiée</option>
+                  <option [ngValue]="true">Justifiée</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Motif</label>
+                <input type="text" class="input-field"
+                  placeholder="Motif de l'absence (optionnel)"
+                  [(ngModel)]="absenceForm.motif" />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn-secondary"
+                (click)="showAddAbsence = false">
+                Annuler
+              </button>
+              <button class="btn-primary"
+                (click)="enregistrerAbsence()"
+                [disabled]="isSubmitting">
+                <span class="spinner-sm" *ngIf="isSubmitting"></span>
+                <span class="material-icons"
+                  *ngIf="!isSubmitting">save</span>
+                {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="table-wrapper">
             <table class="data-table">
@@ -109,34 +187,320 @@
               </thead>
               <tbody>
                 <tr *ngFor="let a of absences">
-                  <td class="text-white">{{ a.eleve?.nom }} {{ a.eleve?.prenom }}</td>
+                  <td class="text-white">
+                    {{ a.eleve?.nom }} {{ a.eleve?.prenom }}
+                  </td>
                   <td class="text-muted">{{ a.date }}</td>
                   <td>{{ a.duree_heures }}h</td>
                   <td class="text-muted">{{ a.motif || 'Sans motif' }}</td>
                   <td>
-                    <span class="badge" [class]="a.justifiee ? 'green' : 'orange'">
+                    <span class="badge"
+                      [class]="a.justifiee ? 'green' : 'orange'">
                       {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
                     </span>
                   </td>
                   <td>
                     <div class="action-btns">
                       <button class="btn-icon sky" *ngIf="!a.justifiee"
-                        (click)="justifierAbsence(a.id)" title="Justifier">
+                        (click)="justifierAbsence(a.id)"
+                        title="Justifier">
                         <span class="material-icons">check</span>
                       </button>
                       <button class="btn-icon orange"
-                        (click)="contacterParent(a.eleve_id)" title="Contacter parent">
+                        (click)="contacterParent(a.eleve_id)"
+                        title="Contacter parent">
                         <span class="material-icons">mail</span>
                       </button>
                     </div>
                   </td>
                 </tr>
                 <tr *ngIf="absences.length === 0">
-                  <td colspan="6" class="empty-row">Aucune absence enregistrée</td>
+                  <td colspan="6" class="empty-row">
+                    Aucune absence enregistrée
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <!-- CLASSES -->
+      <section *ngIf="activeSection === 'classes'">
+        <div class="section-header">
+          <div>
+            <h2>Gestion des Classes</h2>
+            <p>Définissez les classes de l'établissement</p>
+          </div>
+        </div>
+    <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Scolarité totale</th>
+                  <th>Tranches</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of classes">
+                  <td class="text-white">{{ c.nom }}</td>
+                  <td class="text-muted">
+                    {{ c.scolarite_totale | number }} FCFA
+                  </td>
+                  <td>
+                    <span class="badge sky">
+                      {{ c.tranches?.length ?? 0 }} tranche(s)
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-icon red"
+                      (click)="supprimerClasse(c.id)"
+                      title="Supprimer">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="classes.length === 0">
+                  <td colspan="4" class="empty-row">
+                    Aucune classe définie
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SALLES -->
+      <section *ngIf="activeSection === 'salles'">
+        <div class="section-header">
+          <div>
+            <h2>Gestion des Salles</h2>
+            <p>Définissez les salles et affectez les professeurs</p>
+          </div>
+          <button class="btn-primary" (click)="showAddSalle = true">
+            <span class="material-icons">add</span>
+            Nouvelle salle
+          </button>
+        </div>
+
+        <!-- Modal salle -->
+        <!-- Modal salle -->
+<div class="modal-overlay" *ngIf="showAddSalle"
+  (click)="showAddSalle = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Créer une salle</h3>
+      <button class="modal-close" (click)="showAddSalle = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="error-box" *ngIf="formError">
+      <span class="material-icons">error_outline</span>
+      {{ formError }}
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Classe *</label>
+        <select class="input-field" [(ngModel)]="salleForm.classe_id">
+          <option value="">Sélectionner une classe</option>
+          <option *ngFor="let c of classes" [value]="c.id">
+            {{ c.nom }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Option *</label>
+        <input type="text" class="input-field"
+          placeholder="Ex: B1, C, A2"
+          [(ngModel)]="salleForm.option" />
+      </div>
+      <div class="form-group">
+        <label>Année académique</label>
+        <input type="text" class="input-field"
+          placeholder="2026-2027"
+          [(ngModel)]="salleForm.annee_academique" />
+      </div>
+      <div class="form-group">
+        <label>Effectif max</label>
+        <input type="number" class="input-field"
+          placeholder="60"
+          [(ngModel)]="salleForm.effectif_max" />
+      </div>
+      <div class="form-group">
+        <label>Professeur principal
+          <span class="optional">(optionnel)</span>
+        </label>
+        <select class="input-field" [(ngModel)]="salleForm.prof_principal_id">
+          <option value="">Aucun</option>
+          <option *ngFor="let m of getMembresProfs()" [value]="m.id">
+            {{ m.prenom }} {{ m.nom }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showAddSalle = false">
+        Annuler
+      </button>
+      <button class="btn-primary" (click)="creerSalle()"
+        [disabled]="isSubmitting">
+        <span class="spinner-sm" *ngIf="isSubmitting"></span>
+        <span class="material-icons" *ngIf="!isSubmitting">check</span>
+        {{ isSubmitting ? 'Création...' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Classe</th>
+                  <th>Année académique</th>
+                  <th>Effectif max</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let s of salles">
+                  <td class="text-white">{{ s.nom }}</td>
+                  <td class="text-muted">{{ s.classe?.nom }}</td>
+                  <td class="text-muted">{{ s.annee_academique }}</td>
+                  <td class="text-muted">{{ s.effectif_max ?? '—' }}</td>
+                  <td>
+                    <button class="btn-icon red"
+                      (click)="supprimerSalle(s.id)"
+                      title="Supprimer">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="salles.length === 0">
+                  <td colspan="5" class="empty-row">
+                    Aucune salle définie
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPLOI DU TEMPS -->
+      <section *ngIf="activeSection === 'emploi-temps'">
+        <div class="section-header">
+          <div>
+            <h2>Emplois du Temps</h2>
+            <p>Gérez les emplois du temps par salle</p>
+          </div>
+          <button class="btn-primary" (click)="showAddEmploi = true">
+            <span class="material-icons">add</span>
+            Ajouter un emploi du temps
+          </button>
+        </div>
+
+        <!-- Modal emploi du temps -->
+       <!-- Modal emploi du temps -->
+<div class="modal-overlay" *ngIf="showAddEmploi"
+  (click)="showAddEmploi = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Ajouter un emploi du temps</h3>
+      <button class="modal-close" (click)="showAddEmploi = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="error-box" *ngIf="formError">
+      <span class="material-icons">error_outline</span>
+      {{ formError }}
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Salle *</label>
+        <select class="input-field" [(ngModel)]="emploiForm.salle_id">
+          <option value="">Sélectionner une salle</option>
+          <option *ngFor="let s of salles" [value]="s.id">
+            {{ s.nom }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Année académique</label>
+        <input type="text" class="input-field"
+          placeholder="2026-2027"
+          [(ngModel)]="emploiForm.annee_academique" />
+      </div>
+    </div>
+
+    <!-- Zone upload -->
+    <div class="upload-zone" [class.has-file]="selectedEmploiFile">
+      <input type="file" id="emploiFileInput" class="file-input"
+        accept=".pdf,.jpg,.jpeg,.png"
+        (change)="onEmploiFileSelected($event)" />
+      <label for="emploiFileInput" class="upload-label">
+        <div *ngIf="!selectedEmploiFile">
+          <span class="material-icons upload-icon">cloud_upload</span>
+          <p class="upload-text">Cliquez pour sélectionner un fichier</p>
+          <p class="upload-hint">PDF, JPG, PNG acceptés</p>
+        </div>
+        <div *ngIf="selectedEmploiFile" class="file-selected">
+          <span class="material-icons sky">insert_drive_file</span>
+          <div>
+            <p class="file-name">{{ selectedEmploiFile.name }}</p>
+            <p class="file-size">
+              {{ (selectedEmploiFile.size / 1024).toFixed(1) }} KB
+            </p>
+          </div>
+          <span class="badge green">Sélectionné</span>
+        </div>
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showAddEmploi = false">
+        Annuler
+      </button>
+      <button class="btn-primary" (click)="ajouterEmploiTemps()"
+        [disabled]="isSubmitting">
+        <span class="spinner-sm" *ngIf="isSubmitting"></span>
+        <span class="material-icons" *ngIf="!isSubmitting">save</span>
+        {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+        <div class="emplois-grid" *ngIf="emploisTemps.length > 0">
+          <div class="emploi-card" *ngFor="let e of emploisTemps">
+            <div class="emploi-icon">
+              <span class="material-icons">schedule</span>
+            </div>
+            <div class="emploi-info">
+              <h4>{{ e.salle?.nom }}</h4>
+              <p>{{ e.annee_academique }}</p>
+            </div>
+            <a [href]="e.fichier_pdf_url" target="_blank"
+              class="btn-icon sky" title="Voir PDF">
+              <span class="material-icons">open_in_new</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="emploisTemps.length === 0">
+          <span class="material-icons">schedule</span>
+          <p>Aucun emploi du temps disponible</p>
         </div>
       </section>
 
@@ -149,8 +513,10 @@
 
         <div class="search-bar">
           <span class="material-icons">search</span>
-          <input type="text" class="search-input" placeholder="Rechercher une épreuve..."
-            [(ngModel)]="searchEpreuve" (input)="searchEpreuves()" />
+          <input type="text" class="search-input"
+            placeholder="Rechercher une épreuve..."
+            [(ngModel)]="searchEpreuve"
+            (input)="searchEpreuves()" />
         </div>
 
         <div class="card">
@@ -164,6 +530,7 @@
                   <th>Format</th>
                   <th>Publié par</th>
                   <th>Date</th>
+                  <th>Fichier</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,15 +539,28 @@
                   <td class="text-muted">{{ e.matiere?.nom }}</td>
                   <td class="text-muted">{{ e.classe?.nom }}</td>
                   <td>
-                    <span class="badge" [class]="e.format === 'pdf' ? 'sky' : 'green'">
+                    <span class="badge"
+                      [class]="e.format === 'pdf' ? 'sky' : 'green'">
                       {{ e.format?.toUpperCase() }}
                     </span>
                   </td>
-                  <td class="text-muted">{{ e.auteur?.prenom }} {{ e.auteur?.nom }}</td>
-                  <td class="text-muted">{{ e.created_at | date:'dd/MM/yyyy' }}</td>
+                  <td class="text-muted">
+                    {{ e.auteur?.prenom }} {{ e.auteur?.nom }}
+                  </td>
+                  <td class="text-muted">
+                    {{ e.created_at | date:'dd/MM/yyyy' }}
+                  </td>
+                  <td>
+                    <a [href]="e.fichier_url" target="_blank"
+                      class="btn-icon sky">
+                      <span class="material-icons">open_in_new</span>
+                    </a>
+                  </td>
                 </tr>
                 <tr *ngIf="epreuves.length === 0">
-                  <td colspan="6" class="empty-row">Aucune épreuve disponible</td>
+                  <td colspan="7" class="empty-row">
+                    Aucune épreuve disponible
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -199,12 +579,16 @@
           <div class="annonce-card" *ngFor="let a of annonces">
             <div class="annonce-header">
               <h3>{{ a.titre }}</h3>
-              <span class="badge" [class]="a.cible === 'parents' ? 'indigo' : a.cible === 'membres' ? 'sky' : 'green'">
+              <span class="badge"
+                [class]="a.cible === 'parents' ? 'indigo' :
+                          a.cible === 'membres' ? 'sky' : 'green'">
                 {{ a.cible }}
               </span>
             </div>
             <p class="annonce-content">{{ a.contenu }}</p>
-            <p class="annonce-date text-muted">{{ a.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p class="annonce-date text-muted">
+              {{ a.created_at | date:'dd/MM/yyyy HH:mm' }}
+            </p>
           </div>
         </div>
 
@@ -213,30 +597,341 @@
           <p>Aucune annonce disponible</p>
         </div>
       </section>
+      <!-- ORGANISATION ACADEMIQUE -->
+<section *ngIf="activeSection === 'organisation'">
+  <div class="section-header">
+    <div>
+      <h2>Organisation Académique</h2>
+      <p>Définissez la structure de l'année et les méthodes d'évaluation</p>
+    </div>
+  </div>
 
-      <!-- CLASSES -->
-      <section *ngIf="activeSection === 'classes'">
-        <div class="section-header">
-          <h2>Classes & Salles</h2>
-          <p>Gérez les classes et salles de l'établissement</p>
-        </div>
-        <div class="empty-state">
-          <span class="material-icons">class</span>
-          <p>Gestion des classes disponible prochainement</p>
-        </div>
-      </section>
+  <div class="orga-grid">
 
-      <!-- EMPLOI DU TEMPS -->
-      <section *ngIf="activeSection === 'emploi-temps'">
-        <div class="section-header">
-          <h2>Emploi du Temps</h2>
-          <p>Consultez les emplois du temps par salle</p>
+    <!-- Répartition de l'année -->
+    <div class="card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">calendar_today</span>
+          Répartition de l'année
+        </h3>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Type de période *</label>
+          <select class="input-field" [(ngModel)]="configForm.type_periode"
+            (change)="updatePreviews()">
+            <option value="trimestre">Trimestre</option>
+            <option value="semestre">Semestre</option>
+          </select>
         </div>
-        <div class="empty-state">
-          <span class="material-icons">schedule</span>
-          <p>Emploi du temps disponible prochainement</p>
+        <div class="form-group">
+          <label>Nombre de périodes *</label>
+          <input type="number" class="input-field"
+            min="1" max="6"
+            [(ngModel)]="configForm.nombre_periodes"
+            (input)="updatePreviews()" />
         </div>
-      </section>
+      </div>
+
+      <div class="preview-section">
+        <p class="preview-title">Aperçu des périodes :</p>
+        <div class="preview-tags">
+          <span class="preview-tag sky" *ngFor="let p of periodesPreview">
+            {{ p }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Méthodes d'évaluation -->
+    <div class="card">
+      <div class="card-header">
+        <h3>
+          <span class="material-icons">grade</span>
+          Méthodes d'évaluation
+        </h3>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre d'interrogations *</label>
+          <input type="number" class="input-field"
+            min="0" max="10"
+            [(ngModel)]="configForm.nombre_interrogations"
+            (input)="updatePreviews()" />
+        </div>
+        <div class="form-group">
+          <label>Nombre de devoirs *</label>
+          <input type="number" class="input-field"
+            min="0" max="10"
+            [(ngModel)]="configForm.nombre_devoirs"
+            (input)="updatePreviews()" />
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <p class="preview-title">Libellés générés :</p>
+        <div class="preview-tags">
+          <span class="preview-tag green"
+            *ngFor="let l of libellesPreview">
+            {{ l }}
+          </span>
+          <span class="text-muted" *ngIf="libellesPreview.length === 0">
+            Aucun libellé
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="error-box" *ngIf="formError">
+    <span class="material-icons">error_outline</span>
+    {{ formError }}
+  </div>
+
+  <div class="save-section">
+    <button class="btn-primary large" (click)="sauvegarderConfig()"
+      [disabled]="isSubmittingConfig">
+      <span class="spinner-sm" *ngIf="isSubmittingConfig"></span>
+      <span class="material-icons" *ngIf="!isSubmittingConfig">save</span>
+      {{ isSubmittingConfig ? 'Sauvegarde...' : 'Sauvegarder la configuration' }}
+    </button>
+  </div>
+</section>
+
+<!-- AFFECTATIONS -->
+<section *ngIf="activeSection === 'affectations'">
+  <div class="section-header">
+    <div>
+      <h2>Affectations des Professeurs</h2>
+      <p>Affectez les professeurs aux salles avec leur matière</p>
+    </div>
+    <button class="btn-primary" (click)="showAddAffectation = true">
+      <span class="material-icons">add</span>
+      Nouvelle affectation
+    </button>
+  </div>
+
+  <!-- Modal affectation -->
+  <div class="modal-overlay" *ngIf="showAddAffectation"
+    (click)="showAddAffectation = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Affecter un professeur</h3>
+        <button class="modal-close" (click)="showAddAffectation = false">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="error-box" *ngIf="formError">
+        <span class="material-icons">error_outline</span>
+        {{ formError }}
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Salle *</label>
+          <select class="input-field"
+            [(ngModel)]="salleSelectionneeAffectation"
+            (change)="onSalleSelectionneeChange()">
+            <option value="">Sélectionner une salle</option>
+            <option *ngFor="let s of salles" [value]="s.id">
+              {{ s.nom }}
+            </option>
+          </select>
+        </div>
+       <div class="form-group">
+  <label>Professeur *</label>
+  <select class="input-field" [(ngModel)]="affectationForm.user_id"
+    (change)="onProfesseurChange()">
+    <option value="">Sélectionner un professeur</option>
+    <option *ngFor="let p of getMembresProfs()" [value]="p.id">
+      {{ p.prenom }} {{ p.nom }}
+    </option>
+  </select>
+</div>
+<div class="form-group">
+  <label>Matière *</label>
+  <select class="input-field" [(ngModel)]="affectationForm.matiere"
+    [disabled]="!affectationForm.user_id || matieresProf.length === 0">
+    <option value="">
+      {{ affectationForm.user_id ?
+        (matieresProf.length === 0 ? 'Aucune matière pour ce prof' : 'Sélectionner une matière') :
+        'Choisir un professeur d\'abord' }}
+    </option>
+    <option *ngFor="let m of matieresProf" [value]="m.nom">
+      {{ m.nom }}
+    </option>
+  </select>
+</div>
+        <div class="form-group">
+          <label>Coefficient</label>
+          <input type="number" class="input-field"
+            min="1" max="10"
+            [(ngModel)]="affectationForm.coefficient" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary"
+          (click)="showAddAffectation = false">
+          Annuler
+        </button>
+        <button class="btn-primary" (click)="affecterProfesseur()"
+          [disabled]="isSubmitting">
+          <span class="spinner-sm" *ngIf="isSubmitting"></span>
+          <span class="material-icons" *ngIf="!isSubmitting">check</span>
+          {{ isSubmitting ? 'Affectation...' : 'Affecter' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sélection salle pour voir les profs -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Professeurs par salle</h3>
+    </div>
+    <div class="form-group" style="max-width:400px; margin-bottom:20px">
+      <label>Sélectionner une salle</label>
+      <select class="input-field"
+        [(ngModel)]="salleSelectionneeAffectation"
+        (change)="onSalleSelectionneeChange()">
+        <option value="">Choisir une salle</option>
+        <option *ngFor="let s of salles" [value]="s.id">
+          {{ s.nom }}
+        </option>
+      </select>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Professeur</th>
+            <th>Matière</th>
+            <th>Coefficient</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sp of professeursBySalle">
+            <td>
+              <div class="member-name">
+                <div class="avatar green">
+                  {{ sp.user?.prenom?.[0] }}{{ sp.user?.nom?.[0] }}
+                </div>
+                {{ sp.user?.prenom }} {{ sp.user?.nom }}
+              </div>
+            </td>
+            <td class="text-muted">{{ sp.matiere }}</td>
+            <td class="text-muted">{{ sp.coefficient }}</td>
+            <td>
+              <button class="btn-icon red"
+                (click)="retirerProfesseur(sp.user_id)"
+                title="Retirer">
+                <span class="material-icons">remove_circle</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="professeursBySalle.length === 0">
+            <td colspan="4" class="empty-row">
+              {{ salleSelectionneeAffectation ?
+                'Aucun professeur affecté à cette salle' :
+                'Sélectionnez une salle' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- MATIERES -->
+<section *ngIf="activeSection === 'matieres'">
+  <div class="section-header">
+    <div>
+      <h2>Matières de l'établissement</h2>
+      <p>Définissez toutes les matières enseignées</p>
+    </div>
+    <button class="btn-primary" (click)="showAddMatiere = true">
+      <span class="material-icons">add</span>
+      Nouvelle matière
+    </button>
+  </div>
+
+  <!-- Modal matière -->
+  <div class="modal-overlay" *ngIf="showAddMatiere"
+    (click)="showAddMatiere = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Créer une matière</h3>
+        <button class="modal-close" (click)="showAddMatiere = false">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="error-box" *ngIf="formError">
+        <span class="material-icons">error_outline</span>
+        {{ formError }}
+      </div>
+      <div class="form-group">
+        <label>Nom de la matière *</label>
+        <input type="text" class="input-field"
+          placeholder="Ex: Mathématiques, Physique-Chimie..."
+          [(ngModel)]="nouvelleMatiereNom" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showAddMatiere = false">
+          Annuler
+        </button>
+        <button class="btn-primary" (click)="creerMatiere()"
+          [disabled]="isSubmittingMatiere">
+          <span class="spinner-sm" *ngIf="isSubmittingMatiere"></span>
+          <span class="material-icons" *ngIf="!isSubmittingMatiere">check</span>
+          {{ isSubmittingMatiere ? 'Création...' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste matières -->
+  <div class="card">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Matière</th>
+            <th>Date de création</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of matieres">
+            <td class="text-white">
+              <div class="member-name">
+                <div class="avatar green">{{ m.nom[0] }}</div>
+                {{ m.nom }}
+              </div>
+            </td>
+            <td class="text-muted">{{ m.created_at | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <button class="btn-icon red" (click)="supprimerMatiere(m.id)">
+                <span class="material-icons">delete</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="matieres.length === 0">
+            <td colspan="3" class="empty-row">
+              Aucune matière définie
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
     </div>
   </div>

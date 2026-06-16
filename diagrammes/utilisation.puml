@@ -1,0 +1,173 @@
+@startuml cas_utilisation
+title Diagramme de Cas d'Utilisation — OTO School
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+actor "Administrateur\nBackoffice" as BackAdmin
+actor "Administrateur\nÉcole" as Admin
+actor "Superviseur" as Superviseur
+actor "Secrétaire" as Secretaire
+actor "Professeur" as Professeur
+actor "Parent" as Parent
+actor "Membre\nPersonnalisé" as Autre
+
+rectangle "OTO School" {
+
+  package "Gestion École" {
+    usecase "Inscrire une école" as UC1
+    usecase "Valider une école" as UC2
+    usecase "Rejeter une école" as UC3
+    usecase "Modifier profil école" as UC4
+  }
+
+  package "Authentification" {
+    usecase "Se connecter" as UC5
+    usecase "Changer mot de passe" as UC6
+    usecase "Se déconnecter" as UC7
+  }
+
+  package "Gestion du Personnel" {
+    usecase "Créer un membre" as UC8
+    usecase "Supprimer un membre" as UC9
+    usecase "Créer rôle personnalisé" as UC10
+    usecase "Créer membre avec rôle\npersonnalisé" as UC11
+  }
+
+  package "Organisation Académique" {
+    usecase "Définir type de période\n(trimestre/semestre)" as UC12
+    usecase "Définir méthodes\nd'évaluation" as UC13
+    usecase "Gérer les classes" as UC14
+    usecase "Gérer les salles" as UC15
+    usecase "Gérer l'emploi du temps" as UC16
+  }
+
+  package "Gestion des Élèves" {
+    usecase "Inscrire un élève" as UC17
+    usecase "Créer compte parent\nautomatiquement" as UC18
+    usecase "Consulter liste élèves" as UC19
+  }
+
+  package "Gestion de la Scolarité" {
+    usecase "Définir tranches\nde scolarité" as UC20
+    usecase "Enregistrer un paiement" as UC21
+    usecase "Consulter suivi scolarité" as UC22
+    usecase "Contacter parent\n(scolarité)" as UC23
+  }
+
+  package "Gestion des Notes" {
+    usecase "Saisir les notes" as UC24
+    usecase "Consulter les notes\npar salle" as UC25
+    usecase "Consulter relevé\nde notes" as UC26
+  }
+
+  package "Gestion des Absences" {
+    usecase "Enregistrer une absence" as UC27
+    usecase "Justifier une absence" as UC28
+    usecase "Contacter parent\n(absence)" as UC29
+    usecase "Consulter absences\nenfant" as UC30
+  }
+
+  package "Bibliothèque" {
+    usecase "Publier une épreuve" as UC31
+    usecase "Consulter bibliothèque" as UC32
+  }
+
+  package "Annonces & Messages" {
+    usecase "Publier une annonce" as UC33
+    usecase "Consulter annonces" as UC34
+    usecase "Envoyer message\nau parent" as UC35
+    usecase "Consulter messages\nreçus" as UC36
+  }
+
+  package "Suivi Parent" {
+    usecase "Consulter notes\nenfant" as UC37
+    usecase "Consulter absences\nenfant" as UC38
+    usecase "Consulter scolarité\nenfant" as UC39
+  }
+}
+
+' BackAdmin
+BackAdmin --> UC2
+BackAdmin --> UC3
+
+' Admin
+Admin --> UC1
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+Admin --> UC33
+Admin --> UC34
+Admin --> UC32
+
+' Superviseur
+Superviseur --> UC5
+Superviseur --> UC6
+Superviseur --> UC7
+Superviseur --> UC12
+Superviseur --> UC13
+Superviseur --> UC14
+Superviseur --> UC15
+Superviseur --> UC16
+Superviseur --> UC27
+Superviseur --> UC28
+Superviseur --> UC29
+Superviseur --> UC33
+Superviseur --> UC34
+Superviseur --> UC32
+
+' Secrétaire
+Secretaire --> UC5
+Secretaire --> UC6
+Secretaire --> UC7
+Secretaire --> UC17
+Secretaire --> UC19
+Secretaire --> UC14
+Secretaire --> UC20
+Secretaire --> UC21
+Secretaire --> UC22
+Secretaire --> UC23
+Secretaire --> UC25
+Secretaire --> UC34
+Secretaire --> UC32
+Secretaire --> UC35
+
+' Professeur
+Professeur --> UC5
+Professeur --> UC6
+Professeur --> UC7
+Professeur --> UC24
+Professeur --> UC31
+Professeur --> UC32
+Professeur --> UC34
+Professeur --> UC16
+
+' Parent
+Parent --> UC5
+Parent --> UC6
+Parent --> UC7
+Parent --> UC37
+Parent --> UC38
+Parent --> UC39
+Parent --> UC34
+Parent --> UC36
+
+' Autre
+Autre --> UC5
+Autre --> UC6
+Autre --> UC7
+
+' Relations include/extend
+UC17 ..> UC18 : <<include>>
+UC8 ..> UC6 : <<include>>
+UC21 ..> UC22 : <<extend>>
+UC29 ..> UC35 : <<include>>
+UC23 ..> UC35 : <<include>>
+
+@enduml

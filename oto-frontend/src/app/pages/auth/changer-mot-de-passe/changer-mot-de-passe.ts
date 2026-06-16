@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 
@@ -24,6 +24,7 @@ export class ChangerMotDePasse {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   onSubmit(): void {
@@ -68,6 +69,7 @@ export class ChangerMotDePasse {
         error: (err) => {
           this.isLoading = false;
           this.errorMessage = err.error?.message || 'Une erreur est survenue';
+          this.cdr.detectChanges();
         },
       });
   }

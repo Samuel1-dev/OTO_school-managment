@@ -1,1 +1,472 @@
-<p>professeur works!</p>
+<div class="dashboard-root">
+
+  <app-sidebar
+    [navItems]="navItems"
+    [activeSection]="activeSection"
+    [ecoleNom]="ecoleNom"
+    [isOpen]="sidebarOpen"
+    (sectionChange)="activeSection = $event"
+    (closeSidebar)="sidebarOpen = false">
+  </app-sidebar>
+
+  <div class="dashboard-main">
+
+    <app-header
+      [ecoleNom]="ecoleNom"
+      [role]="'professeur'"
+      [userName]="userName"
+      (toggleSidebar)="sidebarOpen = !sidebarOpen">
+    </app-header>
+
+    <div class="dashboard-content">
+
+      <div class="success-banner" *ngIf="formSuccess">
+        <span class="material-icons">check_circle</span>
+        {{ formSuccess }}
+      </div>
+
+      <!-- VUE GENERALE -->
+      <section *ngIf="activeSection === 'vue-generale'">
+        <div class="section-header">
+          <div>
+            <h2>Vue Générale</h2>
+            <p>Tableau de bord de l'enseignant</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <app-stat-card title="Mes Épreuves" [value]="epreuves.length"
+            icon="description" color="sky"></app-stat-card>
+          <app-stat-card title="Emplois du Temps" [value]="emploisTemps.length"
+            icon="schedule" color="green"></app-stat-card>
+          <app-stat-card title="Absences" [value]="absences.length"
+            icon="event_busy" color="orange"></app-stat-card>
+          <app-stat-card title="Annonces" [value]="annonces.length"
+            icon="campaign" color="purple"></app-stat-card>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Dernières annonces</h3>
+            <button class="btn-sm sky" (click)="activeSection = 'annonces'">
+              Voir tout
+            </button>
+          </div>
+          <div class="annonces-preview">
+            <div class="annonce-item" *ngFor="let a of annonces.slice(0, 3)">
+              <div class="annonce-dot"></div>
+              <div class="annonce-info">
+                <p class="annonce-titre">{{ a.titre }}</p>
+                <p class="annonce-date">{{ a.created_at | date:'dd/MM/yyyy' }}</p>
+              </div>
+              <span class="badge" [class]="a.cible === 'membres' ? 'sky' : 'green'">
+                {{ a.cible }}
+              </span>
+            </div>
+            <div class="empty-mini" *ngIf="annonces.length === 0">
+              Aucune annonce
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SAISIE DES NOTES -->
+      <section *ngIf="activeSection === 'notes'">
+        <div class="section-header">
+          <div>
+            <h2>Saisie des Notes</h2>
+            <p>Enregistrez les notes de vos élèves par libellé</p>
+          </div>
+          <button class="btn-primary" (click)="showSaisieNotes = true">
+            <span class="material-icons">add</span>
+            Saisir des notes
+          </button>
+        </div>
+<!-- Modal saisie notes -->
+<div class="modal-overlay" *ngIf="showSaisieNotes"
+  (click)="showSaisieNotes = false">
+  <div class="modal xlarge" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Saisie des Notes</h3>
+      <button class="modal-close" (click)="showSaisieNotes = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="error-box" *ngIf="formError">
+      <span class="material-icons">error_outline</span>
+      {{ formError }}
+    </div>
+
+    <!-- Filtres -->
+   <!-- Filtres -->
+<div class="form-grid three">
+  <div class="form-group">
+    <label>Salle *</label>
+    <select class="input-field" [(ngModel)]="selectedSalleId"
+      (change)="onSalleChange()">
+      <option value="">Sélectionner une salle</option>
+      <option *ngFor="let s of salles" [value]="s.id">
+        {{ s.nom }}
+      </option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Matière *</label>
+    <select class="input-field" [(ngModel)]="selectedMatiere">
+      <option value="">Sélectionner une matière</option>
+      <option *ngFor="let m of mesMatieres" [value]="m.nom">
+        {{ m.nom }}
+      </option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Période *</label>
+    <select class="input-field" [(ngModel)]="selectedPeriode">
+      <option *ngFor="let p of periodes" [value]="p">{{ p }}</option>
+    </select>
+  </div>
+</div>
+
+    <!-- Info si pas de salle sélectionnée -->
+    <div class="info-box" *ngIf="!selectedSalleId">
+      <span class="material-icons">info</span>
+      Sélectionnez une salle pour charger la liste des élèves
+    </div>
+
+<!-- Tableau de saisie par libellé -->
+<div class="notes-container" *ngIf="notesData.length > 0">
+  <div class="notes-section" *ngFor="let nd of notesData; let i = index; trackBy: trackByIndex">
+    <div class="notes-section-title">{{ nd.libelle }}</div>
+    <div class="notes-table-wrapper">
+      <table class="notes-table">
+        <thead>
+          <tr>
+            <th>Élève</th>
+            <th>Note /20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let n of nd.eleves; let j = index; trackBy: trackByIndex">
+            <td>
+              <div class="member-name">
+                <div class="avatar sky">
+                  {{ n.prenom[0] }}{{ n.nom[0] }}
+                </div>
+                {{ n.prenom }} {{ n.nom }}
+              </div>
+            </td>
+            <td>
+              <input
+                type="number"
+                class="note-input"
+                min="0"
+                max="20"
+                step="0.25"
+                [(ngModel)]="notesData[i].eleves[j].valeur"
+                [name]="'note_' + i + '_' + j"
+                placeholder="0" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+    <div class="empty-mini"
+      *ngIf="selectedSalleId && eleves.length === 0">
+      Aucun élève dans cette salle
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showSaisieNotes = false">
+        Annuler
+      </button>
+      <button class="btn-primary" (click)="saisirNotes()"
+        [disabled]="isSubmitting || eleves.length === 0">
+        <span class="spinner-sm" *ngIf="isSubmitting"></span>
+        <span class="material-icons" *ngIf="!isSubmitting">save</span>
+        {{ isSubmitting ? 'Enregistrement...' : 'Valider les notes' }}
+      </button>
+    </div>
+  </div>
+</div>
+        <div class="empty-state">
+          <span class="material-icons">grade</span>
+          <p>Cliquez sur "Saisir des notes" pour commencer</p>
+        </div>
+      </section>
+
+      <!-- ABSENCES -->
+      <section *ngIf="activeSection === 'absences'">
+        <div class="section-header">
+          <h2>Gestion des Absences</h2>
+          <p>Consultez et justifiez les absences</p>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Élève</th>
+                  <th>Date</th>
+                  <th>Durée</th>
+                  <th>Motif</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of absences">
+                  <td class="text-white">
+                    {{ a.eleve?.nom }} {{ a.eleve?.prenom }}
+                  </td>
+                  <td class="text-muted">{{ a.date }}</td>
+                  <td>{{ a.duree_heures }}h</td>
+                  <td class="text-muted">{{ a.motif || 'Sans motif' }}</td>
+                  <td>
+                    <span class="badge"
+                      [class]="a.justifiee ? 'green' : 'orange'">
+                      {{ a.justifiee ? 'Justifiée' : 'Non justifiée' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-icon sky" *ngIf="!a.justifiee"
+                      (click)="justifierAbsence(a.id)" title="Justifier">
+                      <span class="material-icons">check</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="absences.length === 0">
+                  <td colspan="6" class="empty-row">Aucune absence</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPLOI DU TEMPS -->
+      <section *ngIf="activeSection === 'emploi-temps'">
+        <div class="section-header">
+          <h2>Mes Emplois du Temps</h2>
+          <p>Emplois du temps des salles où vous enseignez</p>
+        </div>
+
+        <div class="emplois-grid" *ngIf="emploisTemps.length > 0">
+          <div class="emploi-card" *ngFor="let e of emploisTemps">
+            <div class="emploi-icon">
+              <span class="material-icons">schedule</span>
+            </div>
+            <div class="emploi-info">
+              <h4>{{ e.salle?.nom }}</h4>
+              <p>{{ e.annee_academique }}</p>
+            </div>
+            <a [href]="e.fichier_pdf_url" target="_blank"
+              class="btn-icon sky" title="Télécharger">
+              <span class="material-icons">download</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="emploisTemps.length === 0">
+          <span class="material-icons">schedule</span>
+          <p>Aucun emploi du temps disponible</p>
+        </div>
+      </section>
+
+      <!-- EPREUVES -->
+      <section *ngIf="activeSection === 'epreuves'">
+        <div class="section-header">
+          <div>
+            <h2>Bibliothèque d'Épreuves</h2>
+            <p>Publiez et consultez les épreuves</p>
+          </div>
+          <button class="btn-primary" (click)="showAddEpreuve = true">
+            <span class="material-icons">upload</span>
+            Publier une épreuve
+          </button>
+        </div>
+
+        <!-- Modal épreuve avec upload -->
+        <div class="modal-overlay" *ngIf="showAddEpreuve"
+          (click)="showAddEpreuve = false">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Publier une épreuve</h3>
+              <button class="modal-close"
+                (click)="showAddEpreuve = false; resetEpreuveForm()">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <div class="error-box" *ngIf="formError">
+              <span class="material-icons">error_outline</span>
+              {{ formError }}
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Titre *</label>
+                <input type="text" class="input-field"
+                  placeholder="Devoir de Mathématiques N°2"
+                  [(ngModel)]="epreuveForm.titre" />
+              </div>
+              <div class="form-group">
+                <label>Matière *</label>
+                <select class="input-field"
+                  [(ngModel)]="epreuveForm.matiere_id">
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let m of matieres" [value]="m.id">
+                    {{ m.nom }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <input type="text" class="input-field"
+                  placeholder="Description optionnelle"
+                  [(ngModel)]="epreuveForm.description" />
+              </div>
+            </div>
+             <div class="form-group">
+                <label>Classe *</label>
+                <select class="input-field"
+                  [(ngModel)]="epreuveForm.classe_id">
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let c of classes" [value]="c.id">
+                    {{ c.nom }}
+                  </option>
+                </select>
+              </div>
+
+            <!-- Zone upload fichier -->
+            <div class="upload-zone" [class.has-file]="selectedFile">
+              <input type="file" id="fileInput" class="file-input"
+                accept=".pdf,.jpg,.jpeg,.png"
+                (change)="onFileSelected($event)" />
+              <label for="fileInput" class="upload-label">
+                <div *ngIf="!selectedFile">
+                  <span class="material-icons upload-icon">cloud_upload</span>
+                  <p class="upload-text">
+                    Cliquez pour sélectionner un fichier
+                  </p>
+                  <p class="upload-hint">PDF, JPG, PNG acceptés</p>
+                </div>
+                <div *ngIf="selectedFile" class="file-selected">
+                  <span class="material-icons"
+                    [class]="epreuveForm.format === 'pdf' ?
+                      'sky' : 'green'">
+                    {{ epreuveForm.format === 'pdf' ?
+                      'picture_as_pdf' : 'image' }}
+                  </span>
+                  <div>
+                    <p class="file-name">{{ selectedFile.name }}</p>
+                    <p class="file-size">
+                      {{ (selectedFile.size / 1024).toFixed(1) }} KB
+                    </p>
+                  </div>
+                  <span class="badge green">Sélectionné</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn-secondary"
+                (click)="showAddEpreuve = false; resetEpreuveForm()">
+                Annuler
+              </button>
+              <button class="btn-primary" (click)="publierEpreuve()"
+                [disabled]="isSubmitting">
+                <span class="spinner-sm" *ngIf="isSubmitting"></span>
+                <span class="material-icons" *ngIf="!isSubmitting">upload</span>
+                {{ isSubmitting ? 'Publication...' : 'Publier' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre de recherche -->
+        <div class="search-bar">
+          <span class="material-icons">search</span>
+          <input type="text" class="search-input"
+            placeholder="Rechercher une épreuve..."
+            [(ngModel)]="searchEpreuve"
+            (input)="searchEpreuves()" />
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Matière</th>
+                  <th>Format</th>
+                  <th>Date</th>
+                  <th>Fichier</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of epreuves">
+                  <td class="text-white">{{ e.titre }}</td>
+                  <td class="text-muted">{{ e.matiere?.nom }}</td>
+                  <td>
+                    <span class="badge"
+                      [class]="e.format === 'pdf' ? 'sky' : 'green'">
+                      {{ e.format?.toUpperCase() }}
+                    </span>
+                  </td>
+                  <td class="text-muted">
+                    {{ e.created_at | date:'dd/MM/yyyy' }}
+                  </td>
+                  <td>
+                    <a [href]="e.fichier_url" target="_blank"
+                      class="btn-icon sky">
+                      <span class="material-icons">open_in_new</span>
+                    </a>
+                  </td>
+                </tr>
+                <tr *ngIf="epreuves.length === 0">
+                  <td colspan="5" class="empty-row">Aucune épreuve</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNONCES -->
+      <section *ngIf="activeSection === 'annonces'">
+        <div class="section-header">
+          <h2>Annonces & Communication</h2>
+          <p>Annonces de l'établissement</p>
+        </div>
+
+        <div class="annonces-list" *ngIf="annonces.length > 0">
+          <div class="annonce-card" *ngFor="let a of annonces">
+            <div class="annonce-header">
+              <h3>{{ a.titre }}</h3>
+              <span class="badge"
+                [class]="a.cible === 'parents' ? 'indigo' :
+                          a.cible === 'membres' ? 'sky' : 'green'">
+                {{ a.cible }}
+              </span>
+            </div>
+            <p class="annonce-content">{{ a.contenu }}</p>
+            <p class="annonce-date">
+              {{ a.created_at | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="annonces.length === 0">
+          <span class="material-icons">campaign</span>
+          <p>Aucune annonce disponible</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>

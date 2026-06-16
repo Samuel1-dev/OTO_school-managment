@@ -23,6 +23,10 @@ export class EcoleService {
     return this.http.get(`${this.apiUrl}/ecole/statistiques`);
   }
 
+  getMesMatieres(): Observable<string[]> {
+  return this.http.get<string[]>(`${this.apiUrl}/ecole/mes-matieres`);
+}
+
   // Membres
   getMembres(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/ecole/membres`);

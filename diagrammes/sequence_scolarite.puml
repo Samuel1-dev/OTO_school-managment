@@ -1,0 +1,99 @@
+@startuml sequence_scolarite
+title Diagramme de Séquence — Gestion de la Scolarité
+
+actor Secrétaire as S
+actor Parent as P
+participant "Dashboard\nSecrétaire\n(Angular)" as DashSec
+participant "ClasseService\n(Angular)" as ClasseSvc
+participant "PaiementService\n(Angular)" as PaiesSvc
+participant "MessageService\n(Angular)" as MsgSvc
+participant "ClasseController\n(NestJS)" as ClasseCtrl
+participant "PaiementController\n(NestJS)" as PaieCtrl
+participant "MessageController\n(NestJS)" as MsgCtrl
+database "PostgreSQL" as DB
+
+== Créer une classe ==
+
+S -> DashSec : Clique sur "Nouvelle classe"
+DashSec --> S : Formulaire (nom, scolarité, tranches)
+S -> DashSec : Remplit et soumet
+DashSec -> ClasseSvc : createClasse({nom, scolarite_totale, tranches})
+ClasseSvc -> ClasseCtrl : POST /classes\n{nom, scolarite_totale, tranches}
+ClasseCtrl -> DB : INSERT INTO classes
+DB --> ClasseCtrl : Classe créée
+ClasseCtrl -> DB : INSERT INTO tranches_classe
+DB --> ClasseCtrl : Tranches créées
+ClasseCtrl --> ClasseSvc : 201 Classe + Tranches
+ClasseSvc --> DashSec : Succès
+DashSec --> S : "Classe créée avec succès"
+
+== Modifier les tranches ==
+
+S -> DashSec : Clique sur modifier une classe
+DashSec --> S : Formulaire de modification
+S -> DashSec : Modifie montants et dates
+DashSec -> ClasseSvc : updateClasse(id, {tranches})
+ClasseSvc -> ClasseCtrl : PATCH /classes/:id\n{tranches}
+ClasseCtrl -> DB : UPDATE tranches_classe
+DB --> ClasseCtrl : OK
+ClasseCtrl --> ClasseSvc : 200 Classe mise à jour
+ClasseSvc --> DashSec : Succès
+DashSec --> S : "Tranches mises à jour"
+
+== Consulter le suivi des paiements ==
+
+S -> DashSec : Ouvre onglet Scolarité
+DashSec -> PaiesSvc : getSuiviScolariteEcole()
+PaiesSvc -> PaieCtrl : GET /paiements/scolarite/ecole
+PaieCtrl -> DB : SELECT eleves + tranches\n+ paiements JOIN
+DB --> PaieCtrl : Liste élèves avec\nstatut tranches
+PaieCtrl --> PaiesSvc : 200 [{eleve, tranches: [{solde}]}]
+PaiesSvc --> DashSec : Données
+DashSec --> S : Tableau avec statuts\n(Soldé / Non soldé)
+
+== Enregistrer un paiement ==
+
+S -> DashSec : Clique sur bouton "Solder"\npour une tranche non soldée
+DashSec --> S : Prompt montant payé
+S -> DashSec : Saisit le montant
+DashSec -> PaiesSvc : enregistrerPaiement\n({eleve_id, tranche_id, montant})
+PaiesSvc -> PaieCtrl : POST /paiements\n{eleve_id, tranche_id, montant}
+PaieCtrl -> DB : INSERT INTO paiements
+DB --> PaieCtrl : Paiement créé
+PaieCtrl -> DB : UPDATE tranches SET solde = true
+DB --> PaieCtrl : OK
+PaieCtrl --> PaiesSvc : 201 Paiement enregistré
+PaiesSvc --> DashSec : Succès
+DashSec -> PaiesSvc : getSuiviScolariteEcole()
+PaiesSvc -> PaieCtrl : GET /paiements/scolarite/ecole
+PaieCtrl --> PaiesSvc : Données mises à jour
+PaiesSvc --> DashSec : Tranche affichée "Soldé"
+DashSec --> S : Tableau mis à jour
+
+== Contacter un parent ==
+
+S -> DashSec : Clique sur icône mail\npour un élève
+DashSec --> S : Prompt sujet + message
+S -> DashSec : Saisit sujet et message
+DashSec -> MsgSvc : envoyerMessage(eleve_id,\n{sujet, contenu})
+MsgSvc -> MsgCtrl : POST /messages/eleve/:id\n{sujet, contenu}
+MsgCtrl -> DB : SELECT eleve + parent
+DB --> MsgCtrl : Élève + Parent
+MsgCtrl -> DB : INSERT INTO messages\n(pour réception dans dashboard)
+DB --> MsgCtrl : Message sauvegardé
+MsgCtrl -> MsgCtrl : mailerService.sendMail()
+MsgCtrl --> MsgSvc : 200 Message envoyé
+MsgSvc --> DashSec : Succès
+DashSec --> S : "Message envoyé au parent"
+
+note over P
+  Le parent reçoit l'email
+  ET voit le message dans
+  son dashboard
+end note
+
+P -> P : Consulte dashboard
+P -> DB : GET /messages/mes-messages
+DB --> P : Messages reçus avec\nbadge "Nouveau"
+
+@enduml

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 
@@ -23,6 +23,8 @@ export class Login {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    
   ) {
     this.route.queryParams.subscribe((params) => {
       this.isParent = params['type'] === 'parent';
@@ -56,10 +58,12 @@ export class Login {
     this.authService.login(this.form.email, this.form.mot_de_passe).subscribe({
       next: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.error?.message || 'Identifiants incorrects';
+        this.cdr.detectChanges();
       },
     });
   }
