@@ -1,0 +1,27 @@
+.sujet-cell {
+  font-weight: 600;
+  color: #f3f4f6;
+  font-size: 14px;
+}
+
+.message-recap {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  p {
+    color: #d1d5db;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 6px 0 0;
+  }
+}
+
+.reponse-block {
+  border-left: 3px solid #22c55e;
+  padding-left: 14px;
+
+  p { color: #86efac; }
+}

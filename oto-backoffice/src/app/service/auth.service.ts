@@ -8,6 +8,7 @@ import {
   BehaviorSubject,
   tap
 } from 'rxjs';
+import { Router } from '@angular/router';
 
 export interface LoginResponse {
   access_token: string;
@@ -36,7 +37,8 @@ export class AuthService {
   public token$ = this.tokenSubject.asObservable();
   public role$ = this.roleSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,     private router: Router
+) {}
 
   /**
    * Connexion admin backoffice
@@ -126,6 +128,7 @@ export class AuthService {
     localStorage.removeItem('role');
     this.tokenSubject.next(null);
     this.roleSubject.next(null);
+    this.router.navigate(['/backoffice/login']);
   }
 
   /**

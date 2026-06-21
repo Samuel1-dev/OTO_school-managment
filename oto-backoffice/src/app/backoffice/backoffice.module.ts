@@ -9,27 +9,24 @@ import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
 
 import { AuthInterceptor } from '../service/auth.interceptor';
+import { Messages } from './messages/messages';
 
 @NgModule({
-  declarations: [
-    Backoffice,
-    Login,
-    Dashboard,
-  ],
+  declarations: [Backoffice, Login, Dashboard, Messages],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
     BackofficeRoutingModule,
-    MatIconModule
+    MatIconModule,
   ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
-export class BackofficeModule { }
+export class BackofficeModule {}

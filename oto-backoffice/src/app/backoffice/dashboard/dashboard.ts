@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Subject, forkJoin, takeUntil, interval, startWith, switchMap, Subscription } from 'rxjs';
 import { EcoleService, EcoleResponse } from '../../service/ecole.service';
 import { AuthService } from '../../service/auth.service';
+import { ContactService } from '../../service/contact.service';
+
 
 @Component({
   selector: 'app-dashboard',
@@ -9,7 +11,12 @@ import { AuthService } from '../../service/auth.service';
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
+
+
 export class Dashboard implements OnInit, OnDestroy {
+  activeTab: 'ecoles' | 'messages' = 'ecoles';
+  countMessagesNonTraites = 0;
+  showLogoutConfirm = false;
   // Tableaux de données
   ecoles: EcoleResponse[] = [];
   ecolesPending: EcoleResponse[] = [];
@@ -19,7 +26,7 @@ export class Dashboard implements OnInit, OnDestroy {
   // États de l'interface
   loadingEcoles = false;
   erreurEcoles = '';
-  
+
   // Par défaut, le filtre actif se positionne sur la vue globale
   filtreActif: 'toutes' | 'en_attente' | 'validee' | 'rejetee' = 'toutes';
 
@@ -34,12 +41,14 @@ export class Dashboard implements OnInit, OnDestroy {
   toast: { message: string; type: 'success' | 'error' } | null = null;
 
   private destroy$ = new Subject<void>();
-  private pollingSubscription!: Subscription; 
+  private pollingSubscription!: Subscription;
+  private messagesPollingSubscription!: Subscription;
 
   constructor(
     private ecoleService: EcoleService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef 
+    private contactService: ContactService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -84,9 +93,28 @@ export class Dashboard implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
+
+    // Polling régulier du compteur de messages non traités
+    this.messagesPollingSubscription = interval(10000)
+      .pipe(
+        startWith(0),
+        takeUntil(this.destroy$),
+        switchMap(() => this.contactService.countNonTraites())
+      )
+      .subscribe({
+        next: (count) => {
+          if (this.countMessagesNonTraites !== count) {
+            this.countMessagesNonTraites = count;
+            this.cdr.detectChanges();
+          }
+        },
+        error: (err) => {
+          console.error('Erreur lors du rafraîchissement du compteur de messages:', err);
+        }
+      });
   }
 
-  
+
   chargerToutesLesDonnees(): void {
     this.loadingEcoles = true;
     this.erreurEcoles = '';
@@ -129,7 +157,7 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  
+
   getEcolesAffichees(): EcoleResponse[] {
     if (!this.ecoles || this.ecoles.length === 0) {
       if (this.filtreActif === 'en_attente') return this.ecolesPending || [];
@@ -154,7 +182,7 @@ export class Dashboard implements OnInit, OnDestroy {
   get countValidees(): number { return this.ecoleValidees.length; }
   get countRejetees(): number { return this.ecoleRejetees.length; }
 
-  
+
   valider(ecole: EcoleResponse): void {
     if (!ecole) return;
     if (!confirm(`Êtes-vous sûr de vouloir valider "${ecole.nom}" ?`)) return;
@@ -238,9 +266,15 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   deconnexion(): void {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      this.authService.logout();
-    }
+    this.showLogoutConfirm = true;
+  }
+
+  confirmerDeconnexion(): void {
+    this.authService.logout();
+  }
+
+  annulerDeconnexion(): void {
+    this.showLogoutConfirm = false;
   }
 
   ngOnDestroy(): void {

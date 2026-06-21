@@ -1,0 +1,241 @@
+<div class="bo-page">
+
+  <div class="stats-grid">
+    <div class="stat-card clickable" [class.active]="filtreActif === 'tous'" (click)="filtreActif = 'tous'">
+      <div class="stat-icon indigo-box"><mat-icon>mail</mat-icon></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ countTous }}</span>
+        <span class="stat-lbl">Tous les messages</span>
+      </div>
+    </div>
+
+    <div class="stat-card clickable" [class.active]="filtreActif === 'non_traites'" (click)="filtreActif = 'non_traites'">
+      <div class="stat-icon warning"><mat-icon>mark_email_unread</mat-icon></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ countNonTraites }}</span>
+        <span class="stat-lbl">Non traités</span>
+      </div>
+      <div class="pulse-dot" *ngIf="countNonTraites > 0"></div>
+    </div>
+
+    <div class="stat-card clickable" [class.active]="filtreActif === 'traites'" (click)="filtreActif = 'traites'">
+      <div class="stat-icon green"><mat-icon>mark_email_read</mat-icon></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ countTraites }}</span>
+        <span class="stat-lbl">Traités</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner-lg"></div>
+    <p>Chargement des messages...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && getMessagesAffiches().length === 0">
+    <mat-icon>inbox</mat-icon>
+    <p>Aucun message trouvé</p>
+    <span>Aucune donnée ne correspond à cette catégorie pour le moment.</span>
+  </div>
+
+  <div class="table-wrap" *ngIf="!loading && getMessagesAffiches().length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Expéditeur</th>
+          <th>Sujet</th>
+          <th>Contact</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let msg of getMessagesAffiches()" [class.row-pending]="!msg.traite">
+          <td>
+            <div class="ecole-cell">
+              <div class="ecole-avatar">{{ msg.nom?.charAt(0)?.toUpperCase() }}</div>
+              <div>
+                <strong>{{ msg.nom }}</strong>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="sujet-cell">{{ msg.sujet }}</div>
+          </td>
+          <td>
+            <div class="contact-cell">
+              <div><mat-icon>mail_outline</mat-icon>{{ msg.email }}</div>
+              <div *ngIf="msg.telephone"><mat-icon>phone</mat-icon>{{ msg.telephone }}</div>
+            </div>
+          </td>
+          <td class="date-cell">{{ formatDate(msg.created_at) }}</td>
+          <td>
+            <span class="statut-chip" [ngClass]="{ 'en_attente': !msg.traite, 'validee': msg.traite }">
+              <span class="chip-dot"></span>
+              {{ msg.traite ? 'Traité' : 'Non traité' }}
+            </span>
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="act-btn detail" (click)="ouvrirDetail(msg)" title="Voir détail">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button class="act-btn valid" (click)="ouvrirReponse(msg)" title="Répondre">
+                <mat-icon>reply</mat-icon>
+              </button>
+              <button class="act-btn reject" (click)="ouvrirSuppression(msg)" title="Supprimer">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Modal détail -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="fermerDetail()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-avatar">{{ messageDetail?.nom?.charAt(0)?.toUpperCase() }}</div>
+        <div>
+          <h2>{{ messageDetail?.nom }}</h2>
+          <span class="statut-chip" [ngClass]="{ 'en_attente': !messageDetail?.traite, 'validee': messageDetail?.traite }">
+            <span class="chip-dot"></span>
+            {{ messageDetail?.traite ? 'Traité' : 'Non traité' }}
+          </span>
+        </div>
+      </div>
+      <button class="modal-close" (click)="fermerDetail()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label"><mat-icon>mail_outline</mat-icon> Email</span>
+          <span class="detail-value">{{ messageDetail?.email }}</span>
+        </div>
+        <div class="detail-item" *ngIf="messageDetail?.telephone">
+          <span class="detail-label"><mat-icon>phone</mat-icon> Téléphone</span>
+          <span class="detail-value">{{ messageDetail?.telephone }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><mat-icon>subject</mat-icon> Sujet</span>
+          <span class="detail-value">{{ messageDetail?.sujet }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><mat-icon>calendar_today</mat-icon> Reçu le</span>
+          <span class="detail-value">{{ messageDetail?.created_at ? formatDate(messageDetail!.created_at) : '' }}</span>
+        </div>
+      </div>
+      <div class="detail-desc">
+        <span class="detail-label"><mat-icon>description</mat-icon> Message</span>
+        <p>{{ messageDetail?.message }}</p>
+      </div>
+      <div class="detail-desc reponse-block" *ngIf="messageDetail?.reponse">
+        <span class="detail-label"><mat-icon>reply</mat-icon> Réponse envoyée</span>
+        <p>{{ messageDetail?.reponse }}</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-reject-modal" (click)="ouvrirSuppression(messageDetail!)">
+        <mat-icon>delete</mat-icon> Supprimer
+      </button>
+      <button class="btn-valid-modal" (click)="fermerDetail(); ouvrirReponse(messageDetail!)">
+        <mat-icon>reply</mat-icon>
+        {{ messageDetail?.traite ? 'Modifier la réponse' : 'Répondre' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal réponse -->
+<div class="modal-overlay" *ngIf="showReponseModal" (click)="fermerReponse()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon-warn"><mat-icon>reply</mat-icon></div>
+        <div>
+          <h2>Répondre au message</h2>
+          <p>{{ messageSelectionne?.nom }} — {{ messageSelectionne?.email }}</p>
+        </div>
+      </div>
+      <button class="modal-close" (click)="fermerReponse()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="message-recap">
+        <span class="detail-label"><mat-icon>format_quote</mat-icon> Message original</span>
+        <p>{{ messageSelectionne?.message }}</p>
+      </div>
+      <div class="form-group">
+        <label>Votre réponse <span class="req">*</span></label>
+        <textarea
+          class="input-field"
+          placeholder="Rédigez votre réponse. Elle sera envoyée par email à l'expéditeur..."
+          [(ngModel)]="texteReponse"
+          rows="5"
+        ></textarea>
+      </div>
+      <div class="info-note">
+        <mat-icon>mail_outline</mat-icon>
+        <span>Un email contenant votre réponse sera automatiquement envoyé à {{ messageSelectionne?.email }}.</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" (click)="fermerReponse()">Annuler</button>
+      <button class="btn-valid-modal" (click)="envoyerReponse()" [disabled]="!texteReponse.trim() || actionLoading">
+        <span class="spinner" *ngIf="actionLoading"></span>
+        <mat-icon *ngIf="!actionLoading">send</mat-icon>
+        {{ actionLoading ? 'Envoi...' : 'Envoyer la réponse' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="annulerSuppression()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon-warn"><mat-icon>delete_outline</mat-icon></div>
+        <div>
+          <h2>Supprimer le message</h2>
+          <p>{{ messageASupprimer?.nom }} — {{ messageASupprimer?.sujet }}</p>
+        </div>
+      </div>
+      <button class="modal-close" (click)="annulerSuppression()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p style="color:#d1d5db; font-size:14px; margin:0;">
+        Cette action est irréversible. Le message sera définitivement supprimé.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" (click)="annulerSuppression()">Annuler</button>
+      <button class="btn-reject-confirm" (click)="confirmerSuppression()">
+        <mat-icon>delete</mat-icon>
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" *ngIf="toast" [class]="toast.type">
+  <mat-icon>{{ toast.type === 'success' ? 'check_circle' : 'error_outline' }}</mat-icon>
+  <span>{{ toast.message }}</span>
+</div>

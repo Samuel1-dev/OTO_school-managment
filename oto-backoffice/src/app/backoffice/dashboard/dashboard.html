@@ -14,9 +14,14 @@
 
     <nav class="sidebar-nav">
       <div class="nav-section-label">Navigation</div>
-      <a class="nav-item active">
+      <a class="nav-item" [class.active]="activeTab === 'ecoles'" (click)="activeTab = 'ecoles'">
         <mat-icon>dashboard</mat-icon>
-        <span>Tableau de bord</span>
+        <span>Établissements</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'messages'" (click)="activeTab = 'messages'">
+        <mat-icon>mail</mat-icon>
+        <span>Messages</span>
+        <span class="nav-badge" *ngIf="countMessagesNonTraites > 0">{{ countMessagesNonTraites }}</span>
       </a>
     </nav>
 
@@ -30,8 +35,12 @@
 
     <header class="topbar">
       <div>
-        <h1>Gestion des établissements</h1>
-        <p>Consultez les détails, validez ou rejetez les demandes d'inscription</p>
+        <h1>{{ activeTab === 'ecoles' ? 'Gestion des établissements' : 'Messages de contact' }}</h1>
+        <p>
+          {{ activeTab === 'ecoles'
+            ? "Consultez les détails, validez ou rejetez les demandes d'inscription"
+            : 'Consultez et répondez aux messages envoyés depuis le site' }}
+        </p>
       </div>
       <div class="topbar-right">
         <div class="admin-chip">
@@ -41,133 +50,145 @@
       </div>
     </header>
 
-    <div class="stats-grid">
-      <div class="stat-card clickable" [class.active]="filtreActif === 'toutes'" (click)="filtreActif = 'toutes'">
-        <div class="stat-icon indigo-box">
-          <mat-icon>corporate_fare</mat-icon>
+    <!-- ───────────────── ONGLET ÉTABLISSEMENTS ───────────────── -->
+    <ng-container *ngIf="activeTab === 'ecoles'">
+
+      <div class="stats-grid">
+        <div class="stat-card clickable" [class.active]="filtreActif === 'toutes'" (click)="filtreActif = 'toutes'">
+          <div class="stat-icon indigo-box">
+            <mat-icon>corporate_fare</mat-icon>
+          </div>
+          <div class="stat-body">
+            <span class="stat-val">{{ ecoles.length }}</span>
+            <span class="stat-lbl">Total établissements</span>
+          </div>
         </div>
-        <div class="stat-body">
-          <span class="stat-val">{{ ecoles.length }}</span>
-          <span class="stat-lbl">Total établissements</span>
+
+        <div class="stat-card clickable" [class.active]="filtreActif === 'en_attente'" (click)="filtreActif = 'en_attente'">
+          <div class="stat-icon warning">
+            <mat-icon>hourglass_top</mat-icon>
+          </div>
+          <div class="stat-body">
+            <span class="stat-val">{{ countEnAttente }}</span>
+            <span class="stat-lbl">En attente</span>
+          </div>
+          <div class="pulse-dot" *ngIf="countEnAttente > 0"></div>
+        </div>
+
+        <div class="stat-card clickable" [class.active]="filtreActif === 'validee'" (click)="filtreActif = 'validee'">
+          <div class="stat-icon green">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-body">
+            <span class="stat-val">{{ countValidees }}</span>
+            <span class="stat-lbl">Validées</span>
+          </div>
+        </div>
+
+        <div class="stat-card clickable" [class.active]="filtreActif === 'rejetee'" (click)="filtreActif = 'rejetee'">
+          <div class="stat-icon red">
+            <mat-icon>cancel</mat-icon>
+          </div>
+          <div class="stat-body">
+            <span class="stat-val">{{ countRejetees }}</span>
+            <span class="stat-lbl">Rejetées</span>
+          </div>
         </div>
       </div>
 
-      <div class="stat-card clickable" [class.active]="filtreActif === 'en_attente'" (click)="filtreActif = 'en_attente'">
-        <div class="stat-icon warning">
-          <mat-icon>hourglass_top</mat-icon>
-        </div>
-        <div class="stat-body">
-          <span class="stat-val">{{ countEnAttente }}</span>
-          <span class="stat-lbl">En attente</span>
-        </div>
-        <div class="pulse-dot" *ngIf="countEnAttente > 0"></div>
+      <div class="loading-state" *ngIf="loadingEcoles">
+        <div class="spinner-lg"></div>
+        <p>Chargement des établissements...</p>
       </div>
 
-      <div class="stat-card clickable" [class.active]="filtreActif === 'validee'" (click)="filtreActif = 'validee'">
-        <div class="stat-icon green">
-          <mat-icon>check_circle</mat-icon>
-        </div>
-        <div class="stat-body">
-          <span class="stat-val">{{ countValidees }}</span>
-          <span class="stat-lbl">Validées</span>
-        </div>
+      <div class="empty-state" *ngIf="!loadingEcoles && getEcolesAffichees().length === 0">
+        <mat-icon>inbox</mat-icon>
+        <p>Aucun établissement trouvé</p>
+        <span>Aucune donnée ne correspond à cette catégorie pour le moment.</span>
       </div>
 
-      <div class="stat-card clickable" [class.active]="filtreActif === 'rejetee'" (click)="filtreActif = 'rejetee'">
-        <div class="stat-icon red">
-          <mat-icon>cancel</mat-icon>
-        </div>
-        <div class="stat-body">
-          <span class="stat-val">{{ countRejetees }}</span>
-          <span class="stat-lbl">Rejetées</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="loading-state" *ngIf="loadingEcoles">
-      <div class="spinner-lg"></div>
-      <p>Chargement des établissements...</p>
-    </div>
-
-    <div class="empty-state" *ngIf="!loadingEcoles && getEcolesAffichees().length === 0">
-      <mat-icon>inbox</mat-icon>
-      <p>Aucun établissement trouvé</p>
-      <span>Aucune donnée ne correspond à cette catégorie pour le moment.</span>
-    </div>
-
-    <div class="table-wrap" *ngIf="!loadingEcoles && getEcolesAffichees().length > 0">
-      <table>
-        <thead>
-          <tr>
-            <th>Établissement</th>
-            <th>Fondateur</th>
-            <th>Contact</th>
-            <th>Date d'inscription</th>
-            <th>Statut</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let ecole of getEcolesAffichees()" [class.row-pending]="(ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE'">
-            <td>
-              <div class="ecole-cell">
-                <div class="ecole-avatar">{{ ecole.nom?.charAt(0)?.toUpperCase() }}</div>
-                <div>
-                  <strong>{{ ecole.nom }}</strong>
-                  <span><mat-icon>place</mat-icon>{{ ecole.ville }}</span>
+      <div class="table-wrap" *ngIf="!loadingEcoles && getEcolesAffichees().length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Établissement</th>
+              <th>Fondateur</th>
+              <th>Contact</th>
+              <th>Date d'inscription</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ecole of getEcolesAffichees()" [class.row-pending]="(ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE'">
+              <td>
+                <div class="ecole-cell">
+                  <div class="ecole-avatar">{{ ecole.nom?.charAt(0)?.toUpperCase() }}</div>
+                  <div>
+                    <strong>{{ ecole.nom }}</strong>
+                    <span><mat-icon>place</mat-icon>{{ ecole.ville }}</span>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td>
-              <div class="person-cell">
-                <mat-icon>person_outline</mat-icon>
-                {{ ecole.nom_fondateur }}
-              </div>
-            </td>
-            <td>
-              <div class="contact-cell">
-                <div><mat-icon>mail_outline</mat-icon>{{ ecole.email }}</div>
-                <div><mat-icon>phone</mat-icon>{{ ecole.telephone }}</div>
-              </div>
-            </td>
-            <td class="date-cell">
-              {{ ecole.created_at ? formatDate(ecole.created_at) : '-' }}
-            </td>
-            <td>
-              <span class="statut-chip" [ngClass]="{
-                'en_attente': (ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE',
-                'validee': (ecole.status || ecole.statut)?.toUpperCase() === 'VALIDEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'ACTIVE',
-                'rejetee': (ecole.status || ecole.statut)?.toUpperCase() === 'REJETEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'REJECTED'
-              }">
-                <span class="chip-dot"></span>
-                {{ 
-                  (ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE' ? 'En attente' : 
-                  ((ecole.status || ecole.statut)?.toUpperCase() === 'VALIDEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'ACTIVE' ? 'Validée' : 'Rejetée') 
-                }}
-              </span>
-            </td>
-            <td>
-              <div class="action-btns">
-                <button class="act-btn detail" (click)="ouvrirDetail(ecole)" title="Voir détail">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <ng-container *ngIf="(ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE'">
-                  <button class="act-btn valid" (click)="valider(ecole)" title="Valider">
-                    <mat-icon>check</mat-icon>
+              </td>
+              <td>
+                <div class="person-cell">
+                  <mat-icon>person_outline</mat-icon>
+                  {{ ecole.nom_fondateur }}
+                </div>
+              </td>
+              <td>
+                <div class="contact-cell">
+                  <div><mat-icon>mail_outline</mat-icon>{{ ecole.email }}</div>
+                  <div><mat-icon>phone</mat-icon>{{ ecole.telephone }}</div>
+                </div>
+              </td>
+              <td class="date-cell">
+                {{ ecole.created_at ? formatDate(ecole.created_at) : '-' }}
+              </td>
+              <td>
+                <span class="statut-chip" [ngClass]="{
+                  'en_attente': (ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE',
+                  'validee': (ecole.status || ecole.statut)?.toUpperCase() === 'VALIDEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'ACTIVE',
+                  'rejetee': (ecole.status || ecole.statut)?.toUpperCase() === 'REJETEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'REJECTED'
+                }">
+                  <span class="chip-dot"></span>
+                  {{ 
+                    (ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE' ? 'En attente' : 
+                    ((ecole.status || ecole.statut)?.toUpperCase() === 'VALIDEE' || (ecole.status || ecole.statut)?.toUpperCase() === 'ACTIVE' ? 'Validée' : 'Rejetée') 
+                  }}
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="act-btn detail" (click)="ouvrirDetail(ecole)" title="Voir détail">
+                    <mat-icon>visibility</mat-icon>
                   </button>
-                  <button class="act-btn reject" (click)="ouvrirRejet(ecole)" title="Rejeter">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </ng-container>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+                  <ng-container *ngIf="(ecole.status || ecole.statut)?.toUpperCase() === 'EN_ATTENTE'">
+                    <button class="act-btn valid" (click)="valider(ecole)" title="Valider">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button class="act-btn reject" (click)="ouvrirRejet(ecole)" title="Rejeter">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </ng-container>
+
+    <!-- ───────────────── ONGLET MESSAGES ───────────────── -->
+    <ng-container *ngIf="activeTab === 'messages'">
+      <app-bo-messages></app-bo-messages>
+    </ng-container>
 
   </div>
 </div>
+
+<!-- Modals liées à l'onglet Établissements (inchangées) -->
 
 <div class="modal-overlay" *ngIf="showDetailModal" (click)="fermerDetail()">
   <div class="modal" (click)="$event.stopPropagation()">
@@ -274,6 +295,29 @@
         <span class="spinner" *ngIf="actionLoading"></span>
         <mat-icon *ngIf="!actionLoading">close</mat-icon>
         {{ actionLoading ? 'En cours...' : 'Confirmer le rejet' }}
+      </button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" *ngIf="showLogoutConfirm" (click)="annulerDeconnexion()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-icon-warn"><mat-icon>logout</mat-icon></div>
+        <div>
+          <h2>Déconnexion</h2>
+          <p>Voulez-vous vraiment vous déconnecter ?</p>
+        </div>
+      </div>
+      <button class="modal-close" (click)="annulerDeconnexion()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel-modal" (click)="annulerDeconnexion()">Annuler</button>
+      <button class="btn-reject-confirm" (click)="confirmerDeconnexion()">
+        <mat-icon>logout</mat-icon>
+        Se déconnecter
       </button>
     </div>
   </div>
