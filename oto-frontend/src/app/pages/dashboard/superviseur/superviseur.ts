@@ -52,12 +52,19 @@ export class Superviseur implements OnInit {
   showAddEmploi = false;
   showAddMatiere = false;
   isSubmittingMatiere = false;
+  classeEditForm: any = null;
+  showEditClasse = false;
+  showContactParent = false;
+  isSubmittingContact = false;
+
 
   formError = '';
   formSuccess = '';
   searchEpreuve = '';
   nouvelleMatiereNom = '';
   selectedEmploiFile: File | null = null;
+  contactEleveId = '';
+  contactMessage = '';
 
   absenceForm = {
     eleve_id: '',
@@ -66,6 +73,8 @@ export class Superviseur implements OnInit {
     justifiee: false,
     date: new Date().toISOString().split('T')[0],
   };
+
+  
 
   classeForm = {
     nom: '',
@@ -310,6 +319,93 @@ supprimerMatiere(id: string): void {
   this.matiereService.supprimerMatiere(id).subscribe({
     next: () => {
       this.matieres = this.matieres.filter((m) => m.id !== id);
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+creerClasse(): void {
+  if (!this.classeForm.nom) {
+    this.formError = 'Veuillez renseigner le nom de la classe';
+    return;
+  }
+  this.formError = '';
+  this.isSubmitting = true;
+  this.classeService.createClasse(this.classeForm).subscribe({
+    next: () => {
+      this.isSubmitting = false;
+      this.showAddClasse = false;
+      this.formSuccess = 'Classe créée avec succès';
+      this.classeForm = {
+        nom: '',
+        scolarite_totale: 0,
+        tranches: [
+          { numero: 1, montant: 0, date_limite: '' },
+          { numero: 2, montant: 0, date_limite: '' },
+          { numero: 3, montant: 0, date_limite: '' },
+        ],
+      };
+      this.loadClasses();
+      this.cdr.detectChanges();
+      setTimeout(() => (this.formSuccess = ''), 3000);
+    },
+    error: (err: any) => {
+      this.isSubmitting = false;
+      this.formError = err.error?.message || 'Une erreur est survenue';
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+ouvrirEditClasse(classe: any): void {
+  this.classeEditForm = {
+    id: classe.id,
+    nom: classe.nom,
+    scolarite_totale: classe.scolarite_totale,
+    tranches: classe.tranches?.length > 0
+      ? [...classe.tranches]
+      : [
+          { numero: 1, montant: 0, date_limite: '' },
+          { numero: 2, montant: 0, date_limite: '' },
+          { numero: 3, montant: 0, date_limite: '' },
+        ],
+  };
+  this.showEditClasse = true;
+}
+
+modifierClasse(): void {
+  if (!this.classeEditForm.nom) {
+    this.formError = 'Veuillez renseigner le nom de la classe';
+    return;
+  }
+  this.formError = '';
+  this.isSubmitting = true;
+  this.classeService.updateClasse(this.classeEditForm.id, {
+    nom: this.classeEditForm.nom,
+    scolarite_totale: this.classeEditForm.scolarite_totale,
+    tranches: this.classeEditForm.tranches,
+  }).subscribe({
+    next: () => {
+      this.isSubmitting = false;
+      this.showEditClasse = false;
+      this.formSuccess = 'Classe modifiée avec succès';
+      this.loadClasses();
+      this.cdr.detectChanges();
+      setTimeout(() => (this.formSuccess = ''), 3000);
+    },
+    error: (err: any) => {
+      this.isSubmitting = false;
+      this.formError = err.error?.message || 'Une erreur est survenue';
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+supprimerClasse(id: string): void {
+  if (!confirm('Voulez-vous vraiment supprimer cette classe ?')) return;
+  this.classeService.deleteClasse(id).subscribe({
+    next: () => {
+      this.classes = this.classes.filter((c) => c.id !== id);
       this.cdr.detectChanges();
     },
   });
@@ -572,33 +668,42 @@ sauvegarderConfig(): void {
     });
   }
 
-  contacterParent(eleveId: string): void {
-  const sujet = prompt('Sujet du message :') ?? 'Message de l\'école';
-  const message = prompt('Message à envoyer au parent :');
-  if (!message) return;
+  ouvrirContactParent(eleveId: string): void {
+  this.contactEleveId = eleveId;
+  this.contactMessage = '';
+  this.formError = '';
+  this.showContactParent = true;
+}
 
-  this.messageService.envoyerMessage(eleveId, {
-    contenu: message,
-    sujet,
+envoyerContactParent(): void {
+  if (!this.contactMessage.trim()) {
+    this.formError = 'Veuillez saisir un message';
+    return;
+  }
+
+  this.formError = '';
+  this.isSubmittingContact = true;
+
+  this.messageService.envoyerMessage(this.contactEleveId, {
+    contenu: this.contactMessage,
+    sujet: 'Information concernant une absence',
   }).subscribe({
     next: () => {
+      this.isSubmittingContact = false;
+      this.showContactParent = false;
       this.formSuccess = 'Message envoyé au parent';
+      this.contactMessage = '';
+      this.contactEleveId = '';
       this.cdr.detectChanges();
       setTimeout(() => (this.formSuccess = ''), 3000);
     },
+    error: (err: any) => {
+      this.isSubmittingContact = false;
+      this.formError = err.error?.message || 'Une erreur est survenue';
+      this.cdr.detectChanges();
+    },
   });
 }
-
-  supprimerClasse(id: string): void {
-    if (!confirm('Voulez-vous vraiment supprimer cette classe ?')) return;
-    this.classeService.deleteClasse(id).subscribe({
-      next: () => {
-        this.classes = this.classes.filter((c) => c.id !== id);
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
   supprimerSalle(id: string): void {
     if (!confirm('Voulez-vous vraiment supprimer cette salle ?')) return;
     this.salleService.deleteSalle(id).subscribe({

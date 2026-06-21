@@ -1,5 +1,5 @@
 @startuml diagramme_classes
-title Diagramme de Classes — OTO School
+title Diagramme de Classes — OTO School (mis à jour)
 
 skinparam classAttributeIconSize 0
 skinparam classFontSize 12
@@ -133,8 +133,13 @@ class Matiere {
   +id: UUID
   +nom: String
   +ecole_id: UUID
-  +professeur_id: UUID
   +created_at: Date
+}
+
+class UserMatiere {
+  +id: UUID
+  +user_id: UUID
+  +matiere_id: UUID
 }
 
 class Note {
@@ -143,11 +148,10 @@ class Note {
   +note_sur: Number
   +matiere: String
   +trimestre: String
-  +methode_id: String
+  +libelle: String
   +eleve_id: UUID
   +salle_id: UUID
   +prof_id: UUID
-  +ecole_id: UUID
   +publie_at: Date
 }
 
@@ -237,20 +241,31 @@ class RolePermission {
   +role_id: UUID
 }
 
-' Relations
+' ===== Relations =====
+
 Ecole "1" -- "0..*" User : emploie
 Ecole "1" -- "0..*" Classe : possède
 Ecole "1" -- "0..*" Eleve : inscrit
 Ecole "1" -- "1" ConfigAcademique : configure
 Ecole "1" -- "0..*" RolePersonnalise : définit
+Ecole "1" -- "0..*" Matiere : référence
 Ecole ..> StatutEcole
 
 User "1" -- "0..*" Note : saisit
 User "1" -- "0..*" Epreuve : publie
 User "1" -- "0..*" Annonce : publie
 User "1" -- "0..*" Message : envoie
+User "1" -- "0..*" SalleProfesseur : affecté à
+User "1" -- "0..*" UserMatiere : enseigne
 User ..> RoleUser
 User "0..1" -- "1" RolePersonnalise : a
+
+' --- Classe & Salle gérées par le Superviseur ---
+note right of Classe
+  Création, modification et
+  définition des tranches :
+  rôle **Superviseur**
+end note
 
 Classe "1" -- "0..*" Salle : contient
 Classe "1" -- "0..*" TranchClasse : définit
@@ -260,14 +275,33 @@ Salle "1" -- "0..*" SalleProfesseur : affecte
 Salle "1" -- "0..*" Note : reçoit
 Salle "1" -- "0..*" EmploiTemps : planifie
 
+' --- Inscription élève et paiements gérés par la Secrétaire ---
+note right of Eleve
+  Inscription : rôle **Secrétaire**
+end note
+
+note right of Paiement
+  Enregistrement des paiements
+  et suivi du solde : rôle
+  **Secrétaire**
+  (tranches définies par le
+  Superviseur)
+end note
+
 Eleve "1" -- "0..*" Note : obtient
 Eleve "1" -- "0..*" Absence : génère
 Eleve "1" -- "0..*" Paiement : effectue
+
+' --- Cardinalité corrigée : un Parent peut avoir des enfants
+'     inscrits dans plusieurs écoles différentes (0..N) ---
 Eleve "0..*" -- "0..1" Parent : rattaché à
+Parent "0..*" -- "0..*" Ecole : a des enfants dans
 
 Parent "1" -- "0..*" Message : reçoit
 
-Matiere "0..*" -- "1" User : enseignée par
+Matiere "0..*" -- "0..*" User : enseignée par (via UserMatiere)
+UserMatiere "0..*" -- "1" User
+UserMatiere "0..*" -- "1" Matiere
 
 TranchClasse "1" -- "0..*" Paiement : soldée par
 

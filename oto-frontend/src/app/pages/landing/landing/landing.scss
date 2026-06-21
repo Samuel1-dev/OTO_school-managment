@@ -784,6 +784,104 @@
   textarea.input-field { resize: none; }
 }
 
+// CONTACT — wrapper section
+.contact-section {
+  padding: 96px 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.contact-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.contact-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 12px auto 0;
+}
+
+// BANNERS
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: var(--green-500);
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+
+  .material-icons { font-size: 20px; flex-shrink: 0; }
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--red-500);
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+
+  .material-icons { font-size: 20px; flex-shrink: 0; }
+}
+
+// SUBMIT BUTTON
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: var(--sky-500);
+  color: #000;
+  font-weight: 800;
+  font-size: 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+
+  &:hover:not(:disabled) {
+    background: var(--sky-400);
+    transform: scale(1.01);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .material-icons { font-size: 18px; }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 // FOOTER
 .landing-footer {
   background: var(--bg-primary);
@@ -799,3 +897,4 @@
     &:last-child { font-size: 10px; color: rgba(100,116,139,0.6); }
   }
 }
+

@@ -206,8 +206,7 @@
                         title="Justifier">
                         <span class="material-icons">check</span>
                       </button>
-                      <button class="btn-icon orange"
-                        (click)="contacterParent(a.eleve_id)"
+                      <button class="btn-icon orange" (click)="ouvrirContactParent(a.eleve_id)"
                         title="Contacter parent">
                         <span class="material-icons">mail</span>
                       </button>
@@ -223,56 +222,202 @@
             </table>
           </div>
         </div>
+        <!-- Modal contacter parent -->
+<div class="modal-overlay" *ngIf="showContactParent"
+  (click)="showContactParent = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Contacter le parent</h3>
+      <button class="modal-close" (click)="showContactParent = false">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="error-box" *ngIf="formError">
+      <span class="material-icons">error_outline</span>
+      {{ formError }}
+    </div>
+
+    <div class="form-group">
+      <label>Message *</label>
+      <textarea class="input-field" rows="5"
+        placeholder="Saisissez votre message au parent..."
+        [(ngModel)]="contactMessage"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showContactParent = false">
+        Annuler
+      </button>
+      <button class="btn-primary" (click)="envoyerContactParent()"
+        [disabled]="isSubmittingContact">
+        <span class="spinner-sm" *ngIf="isSubmittingContact"></span>
+        <span class="material-icons" *ngIf="!isSubmittingContact">send</span>
+        {{ isSubmittingContact ? 'Envoi...' : 'Envoyer' }}
+      </button>
+    </div>
+  </div>
+</div>
       </section>
 
-      <!-- CLASSES -->
-      <section *ngIf="activeSection === 'classes'">
-        <div class="section-header">
-          <div>
-            <h2>Gestion des Classes</h2>
-            <p>Définissez les classes de l'établissement</p>
+     <!-- CLASSES -->
+<section *ngIf="activeSection === 'classes'">
+  <div class="section-header">
+    <div>
+      <h2>Gestion des Classes</h2>
+      <p>Définissez les classes et leurs tranches de scolarité</p>
+    </div>
+    <button class="btn-primary" (click)="showAddClasse = true">
+      <span class="material-icons">add</span>
+      Nouvelle classe
+    </button>
+  </div>
+
+  <!-- Modal création classe -->
+  <div class="modal-overlay" *ngIf="showAddClasse" (click)="showAddClasse = false">
+    <div class="modal large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Créer une classe</h3>
+        <button class="modal-close" (click)="showAddClasse = false">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="error-box" *ngIf="formError">
+        <span class="material-icons">error_outline</span>
+        {{ formError }}
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom de la classe *</label>
+          <input type="text" class="input-field" placeholder="Ex: Terminale"
+            [(ngModel)]="classeForm.nom" />
+        </div>
+        <div class="form-group">
+          <label>Scolarité totale (FCFA)</label>
+          <input type="number" class="input-field" placeholder="450000"
+            [(ngModel)]="classeForm.scolarite_totale" />
+        </div>
+      </div>
+      <div class="form-section-title">Tranches de scolarité</div>
+      <div class="tranches-list">
+        <div class="tranche-item" *ngFor="let t of classeForm.tranches; let i = index">
+          <div class="tranche-title">Tranche {{ t.numero }}</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Montant (FCFA)</label>
+              <input type="number" class="input-field"
+                [(ngModel)]="classeForm.tranches[i].montant" />
+            </div>
+            <div class="form-group">
+              <label>Date limite</label>
+              <input type="date" class="input-field"
+                [(ngModel)]="classeForm.tranches[i].date_limite" />
+            </div>
           </div>
         </div>
-    <div class="card">
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Scolarité totale</th>
-                  <th>Tranches</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let c of classes">
-                  <td class="text-white">{{ c.nom }}</td>
-                  <td class="text-muted">
-                    {{ c.scolarite_totale | number }} FCFA
-                  </td>
-                  <td>
-                    <span class="badge sky">
-                      {{ c.tranches?.length ?? 0 }} tranche(s)
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn-icon red"
-                      (click)="supprimerClasse(c.id)"
-                      title="Supprimer">
-                      <span class="material-icons">delete</span>
-                    </button>
-                  </td>
-                </tr>
-                <tr *ngIf="classes.length === 0">
-                  <td colspan="4" class="empty-row">
-                    Aucune classe définie
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showAddClasse = false">Annuler</button>
+        <button class="btn-primary" (click)="creerClasse()" [disabled]="isSubmitting">
+          <span class="spinner-sm" *ngIf="isSubmitting"></span>
+          <span class="material-icons" *ngIf="!isSubmitting">check</span>
+          {{ isSubmitting ? 'Création...' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal modification classe -->
+  <div class="modal-overlay" *ngIf="showEditClasse" (click)="showEditClasse = false">
+    <div class="modal large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Modifier la classe</h3>
+        <button class="modal-close" (click)="showEditClasse = false">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="error-box" *ngIf="formError">
+        <span class="material-icons">error_outline</span>
+        {{ formError }}
+      </div>
+      <div class="form-grid" *ngIf="classeEditForm">
+        <div class="form-group">
+          <label>Nom de la classe *</label>
+          <input type="text" class="input-field" [(ngModel)]="classeEditForm.nom" />
+        </div>
+        <div class="form-group">
+          <label>Scolarité totale (FCFA)</label>
+          <input type="number" class="input-field"
+            [(ngModel)]="classeEditForm.scolarite_totale" />
+        </div>
+      </div>
+      <div class="form-section-title">Tranches de scolarité</div>
+      <div class="tranches-list" *ngIf="classeEditForm">
+        <div class="tranche-item" *ngFor="let t of classeEditForm.tranches; let i = index">
+          <div class="tranche-title">Tranche {{ t.numero }}</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Montant (FCFA)</label>
+              <input type="number" class="input-field"
+                [(ngModel)]="classeEditForm.tranches[i].montant" />
+            </div>
+            <div class="form-group">
+              <label>Date limite</label>
+              <input type="date" class="input-field"
+                [(ngModel)]="classeEditForm.tranches[i].date_limite" />
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="showEditClasse = false">Annuler</button>
+        <button class="btn-primary" (click)="modifierClasse()" [disabled]="isSubmitting">
+          <span class="spinner-sm" *ngIf="isSubmitting"></span>
+          <span class="material-icons" *ngIf="!isSubmitting">save</span>
+          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste classes -->
+  <div class="card">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Scolarité totale</th>
+            <th>Tranches</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of classes">
+            <td class="text-white">{{ c.nom }}</td>
+            <td class="text-muted">{{ c.scolarite_totale | number }} FCFA</td>
+            <td>
+              <span class="badge sky">{{ c.tranches?.length ?? 0 }} tranche(s)</span>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-icon sky" (click)="ouvrirEditClasse(c)" title="Modifier">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="btn-icon red" (click)="supprimerClasse(c.id)" title="Supprimer">
+                  <span class="material-icons">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="classes.length === 0">
+            <td colspan="4" class="empty-row">Aucune classe définie</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
       <!-- SALLES -->
       <section *ngIf="activeSection === 'salles'">

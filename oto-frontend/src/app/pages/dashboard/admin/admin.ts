@@ -259,8 +259,8 @@ creerMembrePersonnalise(): void {
           this.resetRoleForm();
           this.loadRoles();
           this.loadMembres();
-          this.cdr.detectChanges();
           setTimeout(() => (this.formSuccess = ''), 5000);
+          this.cdr.detectChanges();
         },
         error: (err: any) => {
           this.isSubmittingRole = false;

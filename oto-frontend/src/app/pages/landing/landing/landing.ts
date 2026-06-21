@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { ContactService } from '../../../services/contact';
 
 @Component({
   selector: 'app-landing',
@@ -14,13 +15,18 @@ export class Landing implements OnInit, OnDestroy {
   isScrolled = false;
 
   contactForm = {
-    lastName: '',
-    firstName: '',
+    nom: '',
+    prenom: '',
     email: '',
-    phone: '',
-    subject: '',
+    telephone: '',
+    sujet: '',
     message: '',
   };
+  isSubmittingContact = false;
+  contactSuccess = '';
+  contactError = '';
+
+  
 
   navTabs = [
     { id: 'accueil', label: 'Accueil' },
@@ -54,7 +60,11 @@ export class Landing implements OnInit, OnDestroy {
     { title: 'Bibliothèque numérique', icon: 'local_library', desc: 'Importation et consultation des épreuves corrigées.' },
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private contactService: ContactService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.onScroll.bind(this));
@@ -97,18 +107,45 @@ export class Landing implements OnInit, OnDestroy {
     this.router.navigate(['/auth/login'], { queryParams: { type: 'parent' } });
   }
 
-  submitContact(): void {
-    this.isSubmitted = true;
-    setTimeout(() => {
-      this.isSubmitted = false;
-      this.contactForm = {
-        lastName: '',
-        firstName: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-      };
-    }, 5000);
+   submitContact(): void {
+  if (!this.contactForm.nom || !this.contactForm.prenom ||
+      !this.contactForm.email || !this.contactForm.telephone ||
+      !this.contactForm.sujet || !this.contactForm.message) {
+    this.contactError = 'Veuillez remplir tous les champs obligatoires';
+    return;
+  }
+
+  this.contactError = '';
+  this.isSubmittingContact = true;
+
+  const payload = {
+    nom: this.contactForm.nom,
+    prenom: this.contactForm.prenom,
+    email: this.contactForm.email,
+    telephone: this.contactForm.telephone,
+    sujet: this.contactForm.sujet,
+    message: this.contactForm.message,
+  };
+
+  this.contactService.envoyerMessage(payload).subscribe({
+    next: (res: any) => {
+      this.isSubmittingContact = false;
+      this.isSubmitted = true;
+      this.contactSuccess = res.message || 'Votre message a bien été envoyé.';
+      this.contactForm = { nom: '', prenom: '', email: '', telephone: '', sujet: '', message: '' };
+       this.cdr.detectChanges();
+      setTimeout(() => {
+        this.isSubmitted = false;
+        this.contactSuccess = '';
+        this.cdr.detectChanges();
+      }, 5000);
+     
+    },
+    error: (err: any) => {
+      this.isSubmittingContact = false;
+      this.contactError = err.error?.message || 'Une erreur est survenue';
+      this.cdr.detectChanges();
+    },
+  });
   }
 }

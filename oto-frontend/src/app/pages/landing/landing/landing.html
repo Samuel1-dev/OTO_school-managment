@@ -329,47 +329,58 @@
         <p class="text-muted">Réinitialisation automatique...</p>
       </div>
 
-      <!-- Form -->
-      <form *ngIf="!isSubmitted" (ngSubmit)="submitContact()" class="contact-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nom *</label>
-            <input type="text" class="input-field" placeholder="e.g. Kouassi"
-              [(ngModel)]="contactForm.lastName" name="lastName" required />
-          </div>
-          <div class="form-group">
-            <label>Prénom *</label>
-            <input type="text" class="input-field" placeholder="e.g. Jean"
-              [(ngModel)]="contactForm.firstName" name="firstName" required />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Adresse Email *</label>
-            <input type="email" class="input-field" placeholder="contact@nom.com"
-              [(ngModel)]="contactForm.email" name="email" required />
-          </div>
-          <div class="form-group">
-            <label>Numéro de Téléphone *</label>
-            <input type="tel" class="input-field" placeholder="+229 01 02 03 04 05"
-              [(ngModel)]="contactForm.phone" name="phone" required />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Objet du Message *</label>
-          <input type="text" class="input-field" placeholder="Saisie de l'objet du contact"
-            [(ngModel)]="contactForm.subject" name="subject" required />
-        </div>
-        <div class="form-group">
-          <label>Votre Message *</label>
-          <textarea class="input-field" rows="4" placeholder="Exprimez votre besoin..."
-            [(ngModel)]="contactForm.message" name="message" required></textarea>
-        </div>
-        <button type="submit" class="btn-primary full-width">
-          <span>Envoyer la demande</span>
-          <span class="material-icons" style="font-size:16px">send</span>
-        </button>
-      </form>
+     <!-- Form -->
+  <div class="success-banner" *ngIf="isSubmitted">
+    <span class="material-icons">check_circle</span>
+    {{ contactSuccess }}
+  </div>
+  <div class="error-box" *ngIf="contactError">
+    <span class="material-icons">error_outline</span>
+    {{ contactError }}
+  </div>
+
+  <form *ngIf="!isSubmitted" (ngSubmit)="submitContact()" class="contact-form">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nom *</label>
+        <input type="text" class="input-field" placeholder="e.g. Kouassi"
+          [(ngModel)]="contactForm.nom" name="lastName" required />
+      </div>
+      <div class="form-group">
+        <label>Prénom *</label>
+        <input type="text" class="input-field" placeholder="e.g. Jean"
+          [(ngModel)]="contactForm.prenom" name="firstName" required />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Adresse Email *</label>
+        <input type="email" class="input-field" placeholder="contact@nom.com"
+          [(ngModel)]="contactForm.email" name="email" required />
+      </div>
+      <div class="form-group">
+        <label>Numéro de Téléphone *</label>
+        <input type="tel" class="input-field" placeholder="+229 01 02 03 04 05"
+          [(ngModel)]="contactForm.telephone" name="phone" required />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Objet du Message *</label>
+      <input type="text" class="input-field" placeholder="Saisie de l'objet du contact"
+        [(ngModel)]="contactForm.sujet" name="subject" required />
+    </div>
+    <div class="form-group">
+      <label>Votre Message *</label>
+      <textarea class="input-field" rows="4" placeholder="Exprimez votre besoin..."
+        [(ngModel)]="contactForm.message" name="message" required></textarea>
+    </div>
+    <button type="submit" class="btn-primary full-width" [disabled]="isSubmittingContact">
+      <span class="spinner" *ngIf="isSubmittingContact"></span>
+      <span *ngIf="!isSubmittingContact">Envoyer la demande</span>
+      <span *ngIf="isSubmittingContact">Envoi en cours...</span>
+      <span class="material-icons" style="font-size:16px" *ngIf="!isSubmittingContact">send</span>
+    </button>
+  </form>
     </div>
   </section>
 

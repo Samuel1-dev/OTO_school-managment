@@ -47,12 +47,15 @@ export class Secretaire implements OnInit {
   matieresDisponibles: any[] = [];
 
   showAddEleve = false;
-  showAddClasse = false;
-  showAddTranche = false;
   formError = '';
   formSuccess = '';
   trimestreSelectionneeNotes = '';
   matiereSelectionneeNotes = '';
+  showContactParent = false;
+  contactEleveId = '';
+  contactMessage = '';
+  isSubmittingContact = false;
+
 
   eleveForm = {
     nom: '',
@@ -69,27 +72,7 @@ export class Secretaire implements OnInit {
     salle_id: '',
   };
 
-  classeForm = {
-    nom: '',
-    scolarite_totale: 0,
-    tranches: [
-      { numero: 1, montant: 0, date_limite: '' },
-      { numero: 2, montant: 0, date_limite: '' },
-      { numero: 3, montant: 0, date_limite: '' },
-    ],
-  };
-
-  trancheForm: {
-    classe_id: string;
-    tranches: { numero: number; montant: number; date_limite: string }[];
-  } = {
-    classe_id: '',
-    tranches: [
-      { numero: 1, montant: 0, date_limite: '' },
-      { numero: 2, montant: 0, date_limite: '' },
-      { numero: 3, montant: 0, date_limite: '' },
-    ],
-  };
+ 
 
   selectedClasseId = '';
 
@@ -320,107 +303,44 @@ enregistrerPaiement(eleveId: string, trancheId: string): void {
   });
 }
 
-// Modifier une classe
-classeEditForm: any = null;
-showEditClasse = false;
 
-ouvrirEditClasse(classe: any): void {
-  this.classeEditForm = {
-    id: classe.id,
-    nom: classe.nom,
-    scolarite_totale: classe.scolarite_totale,
-    tranches: classe.tranches?.length > 0 ? [...classe.tranches] : [
-      { numero: 1, montant: 0, date_limite: '' },
-      { numero: 2, montant: 0, date_limite: '' },
-      { numero: 3, montant: 0, date_limite: '' },
-    ],
-  };
-  this.showEditClasse = true;
+
+  ouvrirContactParent(eleveId: string): void {
+  this.contactEleveId = eleveId;
+  this.contactMessage = '';
+  this.formError = '';
+  this.showContactParent = true;
 }
 
-modifierClasse(): void {
-  if (!this.classeEditForm.nom) {
-    this.formError = 'Veuillez renseigner le nom de la classe';
+envoyerContactParent(): void {
+  if (!this.contactMessage.trim()) {
+    this.formError = 'Veuillez saisir un message';
     return;
   }
 
   this.formError = '';
-  this.isSubmitting = true;
+  this.isSubmittingContact = true;
 
-  this.classeService.updateClasse(this.classeEditForm.id, {
-    nom: this.classeEditForm.nom,
-    scolarite_totale: this.classeEditForm.scolarite_totale,
-    tranches: this.classeEditForm.tranches,
+  this.messageService.envoyerMessage(this.contactEleveId, {
+    contenu: this.contactMessage,
+    sujet: 'Information sur la scolarité',
   }).subscribe({
     next: () => {
-      this.isSubmitting = false;
-      this.showEditClasse = false;
-      this.classeEditForm = null;
-      this.formSuccess = 'Classe modifiée avec succès';
-      this.loadClasses();
+      this.isSubmittingContact = false;
+      this.showContactParent = false;
+      this.formSuccess = 'Message envoyé au parent';
+      this.contactMessage = '';
+      this.contactEleveId = '';
       this.cdr.detectChanges();
       setTimeout(() => (this.formSuccess = ''), 3000);
     },
     error: (err: any) => {
-      this.isSubmitting = false;
+      this.isSubmittingContact = false;
       this.formError = err.error?.message || 'Une erreur est survenue';
       this.cdr.detectChanges();
     },
   });
 }
-
-  creerClasse(): void {
-    if (!this.classeForm.nom) {
-      this.formError = 'Veuillez renseigner le nom de la classe';
-      return;
-    }
-
-    this.formError = '';
-    this.isSubmitting = true;
-
-    this.classeService.createClasse(this.classeForm).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.showAddClasse = false;
-        this.formSuccess = 'Classe créée avec succès';
-        this.classeForm = {
-          nom: '',
-          scolarite_totale: 0,
-          tranches: [
-            { numero: 1, montant: 0, date_limite: '' },
-            { numero: 2, montant: 0, date_limite: '' },
-            { numero: 3, montant: 0, date_limite: '' },
-          ],
-        };
-        this.loadClasses();
-        this.cdr.detectChanges();
-        setTimeout(() => (this.formSuccess = ''), 3000);
-      },
-      error: (err: any) => {
-        this.isSubmitting = false;
-        this.formError = err.error?.message || 'Une erreur est survenue';
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  contacterParent(eleveId: string): void {
-  const sujet = prompt('Sujet du message :') ?? 'Message de l\'école';
-  const message = prompt('Message à envoyer au parent :');
-  if (!message) return;
-
-  this.messageService.envoyerMessage(eleveId, {
-    contenu: message,
-    sujet,
-  }).subscribe({
-    next: () => {
-      this.formSuccess = 'Message envoyé au parent';
-      this.cdr.detectChanges();
-      setTimeout(() => (this.formSuccess = ''), 3000);
-    },
-  });
-}
-
   resetEleveForm(): void {
     this.eleveForm = {
       nom: '',
